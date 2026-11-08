@@ -463,15 +463,14 @@ button{font:inherit;color:inherit}
 .foot-ridge{top:0;bottom:auto;height:clamp(260px,38vw,460px);opacity:.45}
 .foot-cta{padding-block:clamp(110px,14vw,190px) clamp(64px,8vw,104px)}
 .foot-grid{display:grid;gap:40px 32px;padding-block:56px;border-top:1px solid var(--night-line)}
-@media (min-width:600px){.foot-grid{grid-template-columns:1fr 1fr}}
-@media (min-width:1000px){.foot-grid{grid-template-columns:minmax(0,1.6fr) repeat(3,minmax(0,1fr))}}
+@media (min-width:600px){.foot-grid{grid-template-columns:1fr 1fr}.foot-brand{grid-column:1/-1}}
+@media (min-width:1000px){.foot-grid{grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr))}.foot-brand{grid-column:auto}}
 .foot-brand{display:grid;gap:14px;align-content:start;max-width:340px}
 .foot-brand p{margin:0;color:var(--fog);font-size:15px;line-height:1.6}
 .foot-h{margin:0 0 16px;font:500 11.5px/1.2 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--paper)}
 .foot-col ul{list-style:none;margin:0;padding:0;display:grid;gap:11px}
 .foot-col a{color:var(--fog);text-decoration:none;font-size:15px;transition:color .2s}
 .foot-col a:hover{color:var(--paper)}
-.foot-notes li{color:var(--fog);font-size:14px;line-height:1.55}
 .foot-bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px 24px;padding-block:22px 36px;border-top:1px solid var(--night-line);font-size:13.5px;color:var(--fog)}
 .foot-bar p{margin:0}
 .foot-bar a{color:var(--fog);text-decoration:none;transition:color .2s}
@@ -974,13 +973,6 @@ button{font:inherit;color:inherit}
           <li><a href="#enquiry" data-scramble>Send a trip enquiry</a></li>
         </ul>
       </nav>
-      <div class="foot-col">
-        <p class="foot-h">Good to know</p>
-        <ul class="foot-notes">
-          <li>Answers are AI-generated. Check roads, permits and weather before you travel.</li>
-          <li>Place facts checked November 2026.</li>
-        </ul>
-      </div>
     </div>
     <div class="foot-bar">
       <p>© <span id="year">2026</span> India's Hidden Gems</p>
