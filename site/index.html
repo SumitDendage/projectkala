@@ -532,6 +532,44 @@ button{font:inherit;color:inherit}
 .enq-status.bad{color:var(--danger)}
 @media (max-width:520px){.enq-grid{grid-template-columns:1fr}}
 
+/* ---------- Sign in, create account and reset password ---------- */
+.auth-open,.auth-open body{overflow:hidden}
+.auth[hidden],.auth-card [hidden],.account-menu [hidden]{display:none!important}
+.auth{position:fixed;inset:0;z-index:150;display:grid;place-items:center;overflow-y:auto;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:rgba(7,9,12,.66);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.auth-card{position:relative;width:min(100%,440px);display:grid;gap:16px;padding:clamp(22px,4vw,30px);border-radius:28px;background:var(--night-2);color:var(--paper);border:1px solid var(--night-line);box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 50px 100px -40px rgba(0,0,0,.85)}
+.auth-close{position:absolute;top:16px;right:16px;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--night-line);background:transparent;color:var(--fog);cursor:pointer;transition:color .2s,border-color .2s}
+.auth-close:hover{color:var(--paper);border-color:rgba(242,245,247,.3)}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-right:48px;padding:4px;border-radius:999px;background:rgba(242,245,247,.06)}
+.auth-tabs button{height:36px;border:0;border-radius:999px;background:transparent;color:var(--fog);font:600 14px/1 var(--font-sans);cursor:pointer;transition:background-color .2s,color .2s}
+.auth-tabs button[aria-selected="true"]{background:var(--paper);color:var(--night)}
+.auth h2{margin:6px 0 0;font-weight:700;font-size:clamp(1.6rem,4vw,1.9rem);line-height:1.08;letter-spacing:-.035em}
+.auth h2 em{font-family:var(--font-serif);font-style:italic;font-weight:400}
+.auth-sub{margin:-6px 0 2px;color:var(--fog);font-size:14.5px;line-height:1.5}
+.auth-google{display:flex;align-items:center;justify-content:center;gap:10px;height:48px;border-radius:999px;border:0;background:var(--paper);color:var(--night);font:600 15px/1 var(--font-sans);cursor:pointer;transition:background-color .2s}
+.auth-google:hover{background:#fff}
+.auth-google svg{width:18px;height:18px}
+.auth-or{display:flex;align-items:center;gap:12px;color:var(--fog);font:500 11px/1 var(--font-mono);letter-spacing:.14em;text-transform:uppercase}
+.auth-or::before,.auth-or::after{content:"";flex:1;height:1px;background:var(--night-line)}
+.auth form{display:grid;gap:14px}
+.pw{position:relative}
+.pw input{padding-right:74px}
+.pw-toggle{position:absolute;right:8px;top:50%;margin-top:-15px;height:30px;padding:0 10px;border:0;border-radius:999px;background:transparent;color:var(--fog);font:600 12.5px/1 var(--font-sans);cursor:pointer}
+.pw-toggle:hover{color:var(--paper);background:rgba(242,245,247,.08)}
+.auth-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 12px;margin-top:-4px}
+.auth-link{padding:0;border:0;background:none;color:var(--marigold);font:600 13.5px/1.3 var(--font-sans);cursor:pointer;text-decoration:underline;text-decoration-color:rgba(245,165,36,.45);text-underline-offset:3px}
+.auth-link:hover{text-decoration-color:currentColor}
+.auth-row .auth-link{margin-left:auto}
+.auth-hint{margin:0;color:var(--fog);font-size:12.5px}
+.auth-submit{width:100%;height:50px}
+.auth-submit[aria-disabled="true"]{opacity:.7;cursor:progress}
+.auth-msg{margin:0;font-size:14px;line-height:1.5;color:var(--danger)}
+.auth-msg.ok{color:#7fd6a3}
+.auth-msg.info{color:var(--paper-2)}
+.auth-msg:empty{display:none}
+.auth-fine{margin:0;color:var(--fog);font-size:12.5px;line-height:1.5;text-align:center}
+.account-verify{margin:4px 2px 6px;padding:10px 12px;border-radius:12px;background:rgba(245,165,36,.1);color:var(--paper-2);font-size:13px;line-height:1.45}
+.account-verify .auth-link{display:block;margin-top:6px;font-size:13px}
+
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
@@ -541,6 +579,35 @@ button{font:inherit;color:inherit}
 <body>
 <a class="skip" href="#consultant">Skip to the consultant</a>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<div class="auth" id="auth" hidden>
+  <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle" aria-describedby="authSub">
+    <button class="auth-close" id="authClose" type="button" aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="auth-tabs" role="tablist" aria-label="Account" id="authTabs">
+      <button type="button" role="tab" id="authTabIn" aria-selected="true">Sign in</button>
+      <button type="button" role="tab" id="authTabUp" aria-selected="false">Create account</button>
+    </div>
+    <h2 id="authTitle">Welcome <em>back.</em></h2>
+    <p class="auth-sub" id="authSub">Sign in to save places and keep your chats on every device.</p>
+    <button class="auth-google" id="authGoogle" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Continue with Google</button>
+    <div class="auth-or" id="authOr">or with email</div>
+    <form id="authForm" novalidate>
+      <label class="field" id="authNameField" hidden><span>Name</span><input id="authName" autocomplete="name" maxlength="100"></label>
+      <label class="field"><span>Email</span><input id="authEmail" type="email" inputmode="email" autocomplete="email" maxlength="200" required></label>
+      <div class="field" id="authPwField">
+        <label for="authPassword"><span>Password</span></label>
+        <div class="pw"><input id="authPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128" required><button class="pw-toggle" id="authPwToggle" type="button" aria-controls="authPassword" aria-pressed="false">Show</button></div>
+      </div>
+      <div class="auth-row" id="authRow">
+        <p class="auth-hint" id="authHint" hidden>At least 8 characters.</p>
+        <button class="auth-link" id="authForgot" type="button">Forgot password?</button>
+      </div>
+      <button class="btn btn-accent auth-submit" id="authSubmit" type="submit">Sign in</button>
+      <p class="auth-msg" id="authMsg" role="alert"></p>
+    </form>
+    <button class="auth-link" id="authBack" type="button" hidden>Back to sign in</button>
+    <p class="auth-fine" id="authFine" hidden>Your saved places and chats are stored securely with Google Firebase.</p>
+  </div>
+</div>
 
 <div class="loader" id="loader" aria-hidden="true">
   <div class="loader-blinds" id="loaderBlinds"></div>
@@ -573,10 +640,12 @@ button{font:inherit;color:inherit}
       </button>
       <div class="account-menu" id="accountMenu" hidden>
         <p class="account-who" id="accountWho"></p>
+        <div class="account-verify" id="accountVerify" hidden>Please confirm your email address to secure your account.<button class="auth-link" id="accountResend" type="button">Resend the confirmation link</button></div>
         <p class="account-h">Saved places</p>
         <ul class="account-saved" id="accountSaved"></ul>
         <div class="account-actions">
           <button type="button" class="account-item" id="accountChats">Your chats</button>
+          <button type="button" class="account-item" id="accountPassword" hidden>Change password</button>
           <button type="button" class="account-item" id="accountSignOut">Sign out</button>
         </div>
       </div>
@@ -1116,7 +1185,13 @@ button{font:inherit;color:inherit}
       if (!cfg) return Promise.resolve(null);
       if (!loading) loading = Promise.all(['app', 'auth', 'firestore'].map(n => script(`${SDK}${n}-compat.js`)))
         .then(() => {
-          const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(cfg);
+          const fresh = !firebase.apps.length;
+          const app = fresh ? firebase.initializeApp(cfg) : firebase.app();
+          // Local Firebase emulators, for testing on this computer only.
+          if (fresh && cfg.emulators && /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+            firebase.auth().useEmulator(cfg.emulators.auth);
+            firebase.firestore().useEmulator(cfg.emulators.firestore[0], cfg.emulators.firestore[1]);
+          }
           return { app, auth: firebase.auth(), db: firebase.firestore(), FieldValue: firebase.firestore.FieldValue };
         })
         .catch(e => { console.info('Firebase is unavailable:', e.message); return null; });
@@ -1552,7 +1627,7 @@ button{font:inherit;color:inherit}
     const box = $('#account'), btn = $('#accountBtn'), menu = $('#accountMenu'), label = $('#accountLabel'), av = $('#accountAv');
     const who = $('#accountWho'), saved = $('#accountSaved'), saveBtn = $('#rdSave'), saveLabel = $('#rdSaveLabel');
     const avIcon = av.innerHTML;
-    let me = null, favs = new Set();
+    let me = null, favs = new Set(), loadSeq = 0;
     if (!fb.enabled) return { signedIn: () => false };
     box.hidden = false; saveBtn.hidden = false;
     const google = () => new firebase.auth.GoogleAuthProvider();
@@ -1561,9 +1636,9 @@ button{font:inherit;color:inherit}
       return { name: u.displayName || g.displayName || u.email || g.email || 'You', photo: u.photoURL || g.photoURL || '' };
     };
     function openMenu(open) { menu.hidden = !open; btn.setAttribute('aria-expanded', String(open)); }
-    async function signIn() {
+    async function googleSignIn() {
       const f = await fb.load();
-      if (!f) { toast('Sign-in isn’t available right now. Please try again in a moment.'); return null; }
+      if (!f) { showMsg('Accounts aren’t available right now. Please try again in a moment.'); return null; }
       await fb.user({ anonymous: false });
       const cur = f.auth.currentUser;
       try {
@@ -1572,16 +1647,148 @@ button{font:inherit;color:inherit}
         else await f.auth.signInWithPopup(google());
       } catch (e) {
         if (e.code === 'auth/credential-already-in-use' && e.credential) await f.auth.signInWithCredential(e.credential).catch(() => {});
-        else if (e.code === 'auth/unauthorized-domain') toast('Sign-in needs this website added in Firebase → Authentication → Authorized domains.');
-        else if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') toast('Sign-in didn’t finish. Please try again.');
+        else if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') { showMsg(authError(e)); return null; }
       }
-      render(f.auth.currentUser);
-      return me;
+      const u = f.auth.currentUser;
+      return u && !u.isAnonymous ? u : null;
     }
+
+    /* Sign in, create account and reset password (email and password, or Google). */
+    const authEl = $('#auth'), authForm = $('#authForm'), authMsg = $('#authMsg'), authSubmit = $('#authSubmit');
+    const aName = $('#authName'), aEmail = $('#authEmail'), aPw = $('#authPassword');
+    let mode = 'in', afterAuth = null, lastFocus = null;
+    const COPY = {
+      in: { title: 'Welcome <em>back.</em>', sub: 'Sign in to save places and keep your chats on every device.', submit: 'Sign in' },
+      up: { title: 'Create your <em>account.</em>', sub: 'Save places from the ring and pick up your chats on any device.', submit: 'Create account' },
+      reset: { title: 'Reset your <em>password.</em>', sub: 'Enter the email you signed up with and we’ll send you a link to choose a new password.', submit: 'Send reset link' }
+    };
+    const SAME = 'That email and password don’t match. Try again, or reset your password.';
+    const AUTH_ERRORS = {
+      'auth/invalid-email': 'Enter a valid email address.',
+      'auth/missing-email': 'Enter your email address.',
+      'auth/missing-password': 'Enter your password.',
+      'auth/weak-password': 'Choose a stronger password with at least 8 characters.',
+      'auth/password-does-not-meet-requirements': 'Choose a stronger password: at least 8 characters, with letters and numbers.',
+      'auth/email-already-in-use': 'An account with this email already exists. Sign in instead, or reset your password.',
+      'auth/credential-already-in-use': 'An account with this email already exists. Sign in instead, or reset your password.',
+      'auth/invalid-credential': SAME, 'auth/invalid-login-credentials': SAME, 'auth/wrong-password': SAME, 'auth/user-not-found': SAME,
+      'auth/too-many-requests': 'Too many attempts. Wait a few minutes and try again, or reset your password.',
+      'auth/user-disabled': 'This account has been turned off. Contact the site owner.',
+      'auth/network-request-failed': 'No connection. Check your internet and try again.',
+      'auth/operation-not-allowed': 'This sign-in method isn’t turned on for the site yet.',
+      'auth/popup-blocked': 'Your browser blocked the Google window. Allow pop-ups for this site and try again.',
+      'auth/unauthorized-domain': 'Sign-in needs this website added in Firebase → Authentication → Authorized domains.'
+    };
+    const authError = e => AUTH_ERRORS[e && e.code] || 'Something went wrong. Please try again.';
+    function showMsg(text, kind = '') { authMsg.textContent = text; authMsg.className = 'auth-msg' + (kind ? ' ' + kind : ''); }
+    function setMode(m) {
+      mode = m;
+      const c = COPY[m];
+      $('#authTitle').innerHTML = c.title; $('#authSub').textContent = c.sub; authSubmit.textContent = c.submit;
+      $('#authTabIn').setAttribute('aria-selected', String(m === 'in'));
+      $('#authTabUp').setAttribute('aria-selected', String(m === 'up'));
+      $('#authTabs').hidden = $('#authGoogle').hidden = $('#authOr').hidden = m === 'reset';
+      $('#authNameField').hidden = m !== 'up';
+      $('#authPwField').hidden = $('#authRow').hidden = m === 'reset';
+      $('#authHint').hidden = m !== 'up';
+      $('#authForgot').hidden = m !== 'in';
+      $('#authBack').hidden = m !== 'reset';
+      $('#authFine').hidden = m !== 'up';
+      aPw.setAttribute('autocomplete', m === 'up' ? 'new-password' : 'current-password');
+      showMsg('');
+    }
+    function openAuth(m = 'in', then = null, note = '') {
+      afterAuth = then; lastFocus = document.activeElement;
+      setMode(m);
+      if (note) showMsg(note, 'info');
+      authEl.hidden = false; root.classList.add('auth-open'); if (lenis) lenis.stop();
+      setTimeout(() => (m === 'up' ? aName : aEmail).focus(), 30);
+    }
+    function closeAuth() {
+      authEl.hidden = true; root.classList.remove('auth-open'); if (lenis) lenis.start();
+      afterAuth = null; aPw.value = ''; aPw.type = 'password'; $('#authPwToggle').textContent = 'Show';
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    async function finish(u, message) {
+      const then = afterAuth;
+      closeAuth(); toast(message);
+      await render(u);
+      if (then) then();
+    }
+    // Firebase links in emails return here; if this site isn't an authorized domain yet, send them without one.
+    const back = () => ({ url: location.origin + '/' });
+    const withReturn = (send) => send(back()).catch(e => (e && e.code === 'auth/unauthorized-continue-uri' ? send(undefined) : Promise.reject(e)));
+    $('#authTabIn').addEventListener('click', () => setMode('in'));
+    $('#authTabUp').addEventListener('click', () => setMode('up'));
+    $('#authForgot').addEventListener('click', () => { setMode('reset'); aEmail.focus(); });
+    $('#authBack').addEventListener('click', () => { setMode('in'); aEmail.focus(); });
+    $('#authClose').addEventListener('click', closeAuth);
+    authEl.addEventListener('click', e => { if (e.target === authEl) closeAuth(); });
+    document.addEventListener('keydown', e => {
+      if (authEl.hidden) return;
+      if (e.key === 'Escape') { e.stopPropagation(); closeAuth(); return; }
+      if (e.key !== 'Tab') return;
+      const items = $$('button, input', authEl).filter(x => x.offsetParent !== null);
+      const first = items[0], last = items[items.length - 1];
+      if (!authEl.contains(document.activeElement)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }, true);
+    $('#authPwToggle').addEventListener('click', e => {
+      const show = aPw.type === 'password';
+      aPw.type = show ? 'text' : 'password';
+      e.currentTarget.textContent = show ? 'Hide' : 'Show';
+      e.currentTarget.setAttribute('aria-pressed', String(show));
+    });
+    $('#authGoogle').addEventListener('click', async () => {
+      const u = await googleSignIn();
+      if (u) finish(u, `Signed in as ${profile(u).name}.`);
+    });
+    authForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const email = aEmail.value.trim(), pw = aPw.value, name = aName.value.trim();
+      if (mode === 'up' && !name) { showMsg('Enter your name.'); aName.focus(); return; }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showMsg('Enter a valid email address.'); aEmail.focus(); return; }
+      if (mode === 'up' && pw.length < 8) { showMsg('Choose a password with at least 8 characters.'); aPw.focus(); return; }
+      if (mode === 'in' && !pw) { showMsg('Enter your password.'); aPw.focus(); return; }
+      const f = await fb.load();
+      if (!f) { showMsg('Accounts aren’t available right now. Please try again in a moment.'); return; }
+      if (authSubmit.getAttribute('aria-disabled') === 'true') return;
+      const label = authSubmit.textContent;
+      authSubmit.setAttribute('aria-disabled', 'true');
+      authSubmit.textContent = mode === 'reset' ? 'Sending…' : mode === 'up' ? 'Creating your account…' : 'Signing in…';
+      try {
+        if (mode === 'reset') {
+          await withReturn(opts => f.auth.sendPasswordResetEmail(email, opts))
+            .catch(err => { if (!err || err.code !== 'auth/user-not-found') throw err; });
+          showMsg(`If an account exists for ${email}, a reset link is on its way. Check your inbox and spam folder.`, 'ok');
+        } else if (mode === 'up') {
+          await fb.user({ anonymous: false });
+          const cur = f.auth.currentUser, cred = firebase.auth.EmailAuthProvider.credential(email, pw);
+          // Upgrading the anonymous account keeps the chats this visitor already saved.
+          const u = cur && cur.isAnonymous ? (await cur.linkWithCredential(cred)).user : (await f.auth.createUserWithEmailAndPassword(email, pw)).user;
+          await u.updateProfile({ displayName: name.slice(0, 100) });
+          withReturn(opts => u.sendEmailVerification(opts)).catch(() => {});
+          finish(u, `Welcome, ${name.split(' ')[0]}. We sent a link to ${email} to confirm your address.`);
+        } else {
+          const u = (await f.auth.signInWithEmailAndPassword(email, pw)).user;
+          finish(u, `Signed in as ${u.displayName || u.email}.`);
+        }
+      } catch (err) {
+        showMsg(authError(err));
+      } finally {
+        authSubmit.removeAttribute('aria-disabled');
+        authSubmit.textContent = label;
+      }
+    });
     function render(u) {
       const signedIn = !!(u && !u.isAnonymous);
       me = signedIn ? u : null;
       box.classList.toggle('is-in', signedIn);
+      const hasPassword = signedIn && (u.providerData || []).some(x => x && x.providerId === 'password');
+      loadSeq++;
+      $('#accountVerify').hidden = !(hasPassword && !u.emailVerified);
+      $('#accountPassword').hidden = !hasPassword;
       if (!signedIn) {
         label.textContent = 'Sign in'; av.innerHTML = avIcon; av.style.backgroundImage = '';
         favs = new Set(); renderSaved(); refreshSave(); openMenu(false); return;
@@ -1591,12 +1798,15 @@ button{font:inherit;color:inherit}
       if (/^https:\/\/[^"'\s()]+$/.test(pr.photo)) { av.innerHTML = ''; av.style.backgroundImage = `url("${pr.photo}")`; }
       else { av.style.backgroundImage = ''; av.textContent = pr.name.trim().charAt(0).toUpperCase(); }
       who.textContent = 'Signed in as ' + pr.name;
-      loadProfile(pr);
+      return loadProfile(pr);
     }
     async function loadProfile(pr) {
       const f = await fb.load(); if (!f || !me) return;
-      const ref = f.db.collection('users').doc(me.uid);
-      try { const snap = await ref.get(); favs = new Set((snap.exists && snap.data().favorites) || []); } catch (e) { favs = new Set(); }
+      const ref = f.db.collection('users').doc(me.uid), seq = loadSeq;
+      let list = [];
+      try { const snap = await ref.get(); list = (snap.exists && snap.data().favorites) || []; } catch (e) { /* keep an empty list */ }
+      if (seq !== loadSeq) return; // signed out, or a place was saved meanwhile
+      favs = new Set(list);
       renderSaved(); refreshSave();
       ref.set({ displayName: pr.name.slice(0, 100), photoURL: /^https:\/\//.test(pr.photo) ? pr.photo.slice(0, 500) : null, updatedAt: f.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {});
     }
@@ -1622,8 +1832,14 @@ button{font:inherit;color:inherit}
     }
     async function toggleSave() {
       const pl = ring.place(); if (!pl) return;
-      if (!me && !(await signIn())) return;
+      if (!me) {
+        // After signing in, save it (unless it was already saved on this account).
+        openAuth('in', () => { if (favs.has(pl.slug)) { refreshSave(); toast(`${pl.name} is already in your saved places.`); } else toggleSave(); },
+          `Sign in or create an account to save ${pl.name}.`);
+        return;
+      }
       const f = await fb.load(), on = !favs.has(pl.slug);
+      loadSeq++;
       if (on) favs.add(pl.slug); else favs.delete(pl.slug);
       renderSaved(); refreshSave();
       try {
@@ -1634,7 +1850,21 @@ button{font:inherit;color:inherit}
         renderSaved(); refreshSave(); toast('That didn’t save. Please try again.');
       }
     }
-    btn.addEventListener('click', () => { if (!me) signIn(); else openMenu(menu.hidden); });
+    btn.addEventListener('click', () => { if (!me) openAuth('in'); else openMenu(menu.hidden); });
+    $('#accountResend').addEventListener('click', async () => {
+      if (!me) return;
+      try { await withReturn(opts => me.sendEmailVerification(opts)); toast(`Confirmation link sent to ${me.email}.`); }
+      catch (e) { toast(authError(e)); }
+    });
+    window.addEventListener('focus', () => {
+      if (me && !me.emailVerified && !$('#accountVerify').hidden) me.reload().then(() => { if (me) render(me); }).catch(() => {});
+    });
+    $('#accountPassword').addEventListener('click', async () => {
+      openMenu(false);
+      const f = await fb.load(); if (!f || !me) return;
+      try { await withReturn(opts => f.auth.sendPasswordResetEmail(me.email, opts)); toast(`We sent a link to ${me.email} to choose a new password.`); }
+      catch (e) { toast(authError(e)); }
+    });
     document.addEventListener('click', e => { if (!menu.hidden && !box.contains(e.target)) openMenu(false); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) { openMenu(false); btn.focus(); } });
     $('#accountSignOut').addEventListener('click', async () => { openMenu(false); const f = await fb.load(); if (f) { await f.auth.signOut(); toast('Signed out.'); } });

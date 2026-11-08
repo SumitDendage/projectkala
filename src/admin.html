@@ -56,6 +56,22 @@ main{padding-block:32px 64px}
 .gate h1{margin:0;font-weight:720;font-size:34px;letter-spacing:-.035em}
 .gate h1 em{font-family:var(--font-serif);font-weight:400}
 .gate p{margin:0;color:var(--ink-2)}
+.gate-auth{display:grid;gap:16px;width:100%}
+.gate-form{display:grid;gap:12px}
+.gf{display:grid;gap:6px}
+.gf span{font:500 11px/1.2 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.gf input{height:46px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:15.5px}
+.gf input:focus{outline:none;border-color:var(--marigold-ink);box-shadow:0 0 0 3px rgba(245,165,36,.25)}
+.gate-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-top:4px}
+.linkish{padding:0;border:0;background:none;color:var(--marigold-ink);font-weight:600;font-size:14px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.gate .gate-note{font-size:14px}
+.gate .gate-note:empty{display:none}
+.gate .gate-note.err{color:var(--bad)}
+.gate .gate-note.ok{color:var(--ok)}
+.or{display:flex;align-items:center;gap:12px;color:var(--ink-2);font:500 11px/1 var(--font-mono);letter-spacing:.14em;text-transform:uppercase}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.gate-google{width:100%}
+.gate-verify{display:flex;flex-wrap:wrap;gap:8px}
 code{font-family:var(--font-mono);font-size:.9em;background:var(--muted-bg);padding:.1em .35em;border-radius:6px}
 
 .tabs{display:flex;gap:4px;padding:4px;border-radius:999px;background:var(--card);border:1px solid var(--line-2);width:max-content;max-width:100%;overflow-x:auto;margin-bottom:24px}
@@ -163,8 +179,24 @@ dialog::backdrop{background:rgba(7,9,12,.55)}
 <main class="wrap">
   <section class="gate" id="gate" aria-labelledby="gateTitle">
     <h1 id="gateTitle">Site <em>admin</em></h1>
-    <p id="gateMsg">Sign in with the Google account listed in <code>firestore.rules</code> to manage places, enquiries and chats.</p>
-    <button class="btn primary" id="signIn" type="button">Sign in with Google</button>
+    <p id="gateMsg">Sign in with an account listed in <code>firestore.rules</code> to manage places, enquiries and chats.</p>
+    <div class="gate-auth" id="gateAuth">
+      <form class="gate-form" id="pwForm" novalidate>
+        <label class="gf"><span>Email</span><input id="gEmail" type="email" inputmode="email" autocomplete="username" maxlength="200" required></label>
+        <label class="gf"><span>Password</span><input id="gPw" type="password" autocomplete="current-password" maxlength="128" required></label>
+        <div class="gate-row">
+          <button class="btn primary" id="gSubmit" type="submit">Sign in</button>
+          <button class="linkish" id="gForgot" type="button">Forgot password?</button>
+        </div>
+        <p class="gate-note" id="gNote" role="status" aria-live="polite"></p>
+      </form>
+      <div class="or">or</div>
+      <button class="btn ghost gate-google" id="signIn" type="button">Continue with Google</button>
+    </div>
+    <div class="gate-verify" id="gateVerify" hidden>
+      <button class="btn primary" id="gResend" type="button">Send the confirmation link again</button>
+      <button class="btn ghost" id="gRecheck" type="button">I’ve confirmed it</button>
+    </div>
   </section>
 
   <section id="app" hidden>
@@ -289,11 +321,12 @@ dialog::backdrop{background:rgba(7,9,12,.55)}
   const cfg = window.HIDDEN_GEMS_FIREBASE;
   if (!cfg || !cfg.projectId || !window.firebase) {
     $('#gateMsg').textContent = 'Firebase isn’t set up yet. Add your project’s values to firebase-config.js and deploy again.';
-    $('#signIn').hidden = true;
+    $('#gateAuth').hidden = true;
     return;
   }
   firebase.initializeApp(cfg);
   const auth = firebase.auth(), db = firebase.firestore(), FV = firebase.firestore.FieldValue;
+  if (cfg.emulators && /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) { auth.useEmulator(cfg.emulators.auth); db.useEmulator(cfg.emulators.firestore[0], cfg.emulators.firestore[1]); }
 
   // The 9 verified starter places (same data as the site's built-in list).
   const STARTER = [
@@ -309,24 +342,78 @@ dialog::backdrop{background:rgba(7,9,12,.55)}
   ];
   $('#photoList').append(...STARTER.map(p => h('option', { value: p.imagePath })));
 
-  /* ---------- Sign-in and admin check ---------- */
+  /* ---------- Sign-in (email and password, or Google) and admin check ---------- */
+  const gateDefault = $('#gateMsg').innerHTML;
+  const SAME = 'That email and password don’t match. Try again, or use Forgot password.';
+  const AUTH_ERRORS = {
+    'auth/invalid-email': 'Enter a valid email address.',
+    'auth/invalid-credential': SAME, 'auth/invalid-login-credentials': SAME, 'auth/wrong-password': SAME, 'auth/user-not-found': SAME,
+    'auth/too-many-requests': 'Too many attempts. Wait a few minutes, or reset your password.',
+    'auth/user-disabled': 'This account has been turned off in Firebase.',
+    'auth/network-request-failed': 'No connection. Check your internet and try again.',
+    'auth/operation-not-allowed': 'Turn on this sign-in method in Firebase → Authentication → Sign-in method.',
+    'auth/popup-blocked': 'Your browser blocked the Google window. Allow pop-ups for this site.',
+    'auth/unauthorized-domain': 'This website isn’t in Firebase → Authentication → Settings → Authorized domains yet.'
+  };
+  const authErr = e => AUTH_ERRORS[e && e.code] || `Sign-in didn’t finish (${errText(e)}).`;
+  const note = (text, kind = '') => { const n = $('#gNote'); n.textContent = text; n.className = 'gate-note' + (kind ? ' ' + kind : ''); };
+  const validEmail = v => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
+  const back = () => ({ url: location.origin + '/admin' });
+  const withReturn = send => send(back()).catch(e => (e && e.code === 'auth/unauthorized-continue-uri' ? send(undefined) : Promise.reject(e)));
+
+  $('#pwForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = $('#gEmail').value.trim(), pw = $('#gPw').value, btn = $('#gSubmit');
+    if (!validEmail(email)) { note('Enter a valid email address.', 'err'); $('#gEmail').focus(); return; }
+    if (!pw) { note('Enter your password.', 'err'); $('#gPw').focus(); return; }
+    btn.disabled = true; btn.textContent = 'Signing in…'; note('');
+    try { await auth.signInWithEmailAndPassword(email, pw); $('#gPw').value = ''; }
+    catch (err) { note(authErr(err), 'err'); }
+    finally { btn.disabled = false; btn.textContent = 'Sign in'; }
+  });
+  $('#gForgot').addEventListener('click', async () => {
+    const email = $('#gEmail').value.trim();
+    if (!validEmail(email)) { note('Type your email above, then choose Forgot password again.', 'err'); $('#gEmail').focus(); return; }
+    try {
+      await withReturn(opts => auth.sendPasswordResetEmail(email, opts))
+        .catch(err => { if (!err || err.code !== 'auth/user-not-found') throw err; });
+      note(`If an account exists for ${email}, a reset link is on its way. Check your inbox and spam folder.`, 'ok');
+    } catch (err) { note(authErr(err), 'err'); }
+  });
   $('#signIn').addEventListener('click', async () => {
     try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     catch (e) {
       if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
-      $('#gateMsg').textContent = e.code === 'auth/unauthorized-domain'
-        ? 'This website isn’t in Firebase → Authentication → Settings → Authorized domains yet.'
-        : `Sign-in didn’t finish (${errText(e)}).`;
+      note(authErr(e), 'err');
     }
   });
   $('#signOut').addEventListener('click', () => auth.signOut());
+  $('#gResend').addEventListener('click', async () => {
+    const u = auth.currentUser; if (!u) return;
+    try { await withReturn(opts => u.sendEmailVerification(opts)); $('#gateMsg').textContent = `Confirmation link sent to ${u.email}. Open it, then choose “I’ve confirmed it”.`; }
+    catch (e) { $('#gateMsg').textContent = authErr(e); }
+  });
+  $('#gRecheck').addEventListener('click', async () => {
+    const u = auth.currentUser; if (!u) return;
+    try { await u.reload(); await u.getIdToken(true); } catch (e) { /* the check below explains */ }
+    enter(auth.currentUser);
+  });
 
-  auth.onAuthStateChanged(async user => {
+  auth.onAuthStateChanged(enter);
+  async function enter(user) {
     const signedIn = !!(user && !user.isAnonymous);
     $('#me').hidden = !signedIn;
-    if (!signedIn) { $('#app').hidden = true; $('#gate').hidden = false; return; }
+    $('#gateAuth').hidden = signedIn;
+    $('#gateVerify').hidden = true;
+    if (!signedIn) { $('#app').hidden = true; $('#gate').hidden = false; $('#gateMsg').innerHTML = gateDefault; return; }
     $('#meName').textContent = user.displayName || user.email || '';
     if (user.photoURL) { $('#meAv').src = user.photoURL; $('#meAv').hidden = false; } else $('#meAv').hidden = true;
+    // The database only trusts admin addresses that are confirmed.
+    if (!user.emailVerified) {
+      $('#app').hidden = true; $('#gate').hidden = false; $('#gateVerify').hidden = false;
+      $('#gateMsg').textContent = `Confirm ${user.email} before using the admin. Open the link Firebase emailed you, then choose “I’ve confirmed it”.`;
+      return;
+    }
     try {
       await db.collection('enquiries').limit(1).get();
     } catch (e) {
@@ -338,7 +425,7 @@ dialog::backdrop{background:rgba(7,9,12,.55)}
     }
     $('#gate').hidden = true; $('#app').hidden = false;
     loadPlaces(); loadEnquiries(); loadChats();
-  });
+  }
 
   /* ---------- Tabs ---------- */
   const tabs = ['places', 'enquiries', 'chats'];

@@ -73,13 +73,21 @@ Firebase replaced Supabase. It powers four things:
 | Feature | Where it lives | Who can do what (enforced by `firestore.rules`) |
 |---|---|---|
 | Places in the 3D ring | `places` | Everyone reads published places. Only admins add, edit, hide or delete them. India only, with coordinates inside India. |
-| Visitor accounts | Google sign-in, `users/{uid}` | Each visitor reads and writes only their own profile and saved places. |
-| Saved chat history | `chats/{id}` and `chats/{id}/messages` | Visitors get a private anonymous account in the background and see only their own chats. Signing in with Google keeps them. Admins can read all chats. |
+| Visitor accounts | Firebase Authentication (email and password, or Google), `users/{uid}` | Each visitor reads and writes only their own profile and saved places. |
+| Saved chat history | `chats/{id}` and `chats/{id}/messages` | Visitors get a private anonymous account in the background and see only their own chats. Creating an account (email or Google) keeps them. Admins can read all chats. |
 | Trip enquiries | `enquiries` | Anyone can send one (fields and lengths are checked). Only admins can read them or change their status. |
 
 The AI chat itself still runs on the Lovable backend.
 
-**The admin page** is at `https://storied-otter-d8b50e.netlify.app/admin`. Sign in with a Google account listed in `isAdmin()` in `firestore.rules` to:
+**Accounts (Sign in at the top right, or Save on a place):**
+- **Create account:** name, email and a password of at least 8 characters. Firebase emails a link to confirm the address; until it's confirmed, the account menu shows a reminder with a resend link.
+- **Sign in:** email and password, or Continue with Google.
+- **Forgot password?:** sends a reset link by email. The message is the same whether or not the email has an account, so nobody can use the form to check who is registered.
+- **Change password:** in the account menu, for email accounts. It emails a reset link.
+- A visitor who chatted before creating an account keeps their saved chats: the anonymous account is upgraded, not replaced.
+- Reset and confirmation emails come from Firebase. To change their wording or sender name: Authentication → Templates.
+
+**The admin page** is at `https://storied-otter-d8b50e.netlify.app/admin`. Sign in with an email listed in `isAdmin()` in `firestore.rules`, using Google or an email and password (with Forgot password if needed). An email-and-password admin must confirm the address first; the page offers to resend the link. Then you can:
 - manage places, including importing the 9 starter places in one click;
 - read enquiries and mark them new, contacted or closed;
 - read saved chats.
@@ -93,11 +101,13 @@ The AI chat itself still runs on the Lovable backend.
 
 **Firebase setup checklist (one time):**
 1. Create the database: Firestore Database → Create database → production mode, region `asia-south1` (Mumbai).
-2. Turn on sign-in: Authentication → Sign-in method → enable **Google** and **Anonymous**.
+2. Turn on sign-in: Authentication → Sign-in method → enable **Email/Password**, **Google** and **Anonymous**.
 3. Allow your site: Authentication → Settings → Authorized domains → add `storied-otter-d8b50e.netlify.app`.
-4. Publish the rules: in `firestore.rules`, replace `your-admin-email@example.com` with your admin Google address, then go to Firestore Database → Rules → paste the file → Publish.
+4. Publish the rules: in `firestore.rules`, replace `your-admin-email@example.com` with your admin email address, then go to Firestore Database → Rules → paste the file → Publish.
 5. Connect the site: put your web config in `firebase-config.js`, then run `python3 build.py && python3 deploy_netlify.py`.
 6. Load the places: open `/admin`, sign in, and click "Import the 9 starter places".
+
+**Testing on your own computer:** add `emulators: {auth: "http://127.0.0.1:9099", firestore: ["127.0.0.1", 8080]}` to the config in `firebase-config.js` and run `firebase emulators:start --only auth,firestore`. The site then talks only to the local emulators. This setting only works on `localhost`, but remove it before deploying.
 
 **Old Supabase data:** the `hidden_gems_places` table in Supabase is no longer used by the site. It's kept as a backup until you ask for it to be deleted.
 
