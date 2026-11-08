@@ -1,0 +1,117 @@
+rules_version = '2';
+
+// Security rules for India's Hidden Gems.
+// Paste this into Firebase console → Firestore Database → Rules, then click Publish.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Google accounts that can use the /admin page.
+    // Before publishing these rules, replace the placeholder with your admin Google address(es).
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in ['your-admin-email@example.com'];
+    }
+
+    function signedIn() { return request.auth != null; }
+    function str(v, min, max) { return v is string && v.size() >= min && v.size() <= max; }
+    function optStr(d, key, max) { return !(key in d) || d[key] == null || str(d[key], 0, max); }
+
+    // ---------- Places in the 3D ring (India only) ----------
+    // Everyone reads published places. Only admins create, edit or delete them.
+    match /places/{slug} {
+      allow read: if isAdmin() || resource.data.published == true;
+      allow create, update: if isAdmin() && slug.matches('^[a-z0-9-]{1,60}$') && validPlace(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    function validPlace(d) {
+      return d.keys().hasOnly(['name', 'region', 'state', 'country', 'kind', 'category', 'imagePath', 'lat', 'lng',
+                               'bestMonths', 'description', 'sourceUrl', 'verifiedOn', 'sortOrder', 'published', 'updatedAt'])
+        && d.keys().hasAll(['name', 'state', 'country', 'kind', 'lat', 'lng', 'sortOrder', 'published'])
+        && str(d.name, 1, 80) && str(d.state, 1, 60) && optStr(d, 'region', 120)
+        && d.country == 'India'
+        && d.kind in ['mountains', 'water', 'desert', 'forest', 'heritage']
+        && optStr(d, 'category', 60)
+        && (!('imagePath' in d) || d.imagePath == null
+            || (d.imagePath is string && d.imagePath.matches('^places/[a-z0-9-]+[.](jpg|webp|png)$')))
+        && d.lat is number && d.lat >= 6 && d.lat <= 37.5
+        && d.lng is number && d.lng >= 68 && d.lng <= 97.5
+        && optStr(d, 'bestMonths', 60) && optStr(d, 'description', 600)
+        && optStr(d, 'sourceUrl', 300) && optStr(d, 'verifiedOn', 20)
+        && d.sortOrder is int && d.sortOrder >= 0 && d.sortOrder <= 999
+        && d.published is bool
+        && (!('updatedAt' in d) || d.updatedAt is timestamp);
+    }
+
+    // ---------- Trip enquiries ----------
+    // Visitors (signed in anonymously by the site) can send one. Only admins read or manage them.
+    match /enquiries/{id} {
+      allow create: if signedIn() && validEnquiry(request.resource.data);
+      allow read, delete: if isAdmin();
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['new', 'contacted', 'closed'];
+    }
+
+    function validEnquiry(d) {
+      return d.keys().hasOnly(['name', 'email', 'dates', 'travellers', 'place', 'message', 'uid', 'status', 'createdAt'])
+        && d.keys().hasAll(['name', 'email', 'message', 'uid', 'status', 'createdAt'])
+        && str(d.name, 1, 100)
+        && str(d.email, 3, 200) && d.email.matches('^[^@ ]+@[^@ ]+[.][^@ ]+$')
+        && str(d.message, 1, 2000)
+        && optStr(d, 'dates', 100) && optStr(d, 'place', 120)
+        && (!('travellers' in d) || d.travellers == null || (d.travellers is int && d.travellers >= 1 && d.travellers <= 50))
+        && d.uid == request.auth.uid
+        && d.status == 'new'
+        && d.createdAt == request.time;
+    }
+
+    // ---------- Saved chat history ----------
+    // Each visitor reads and writes only their own chats. Admins can read all of them.
+    match /chats/{chatId} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'title', 'messageCount', 'createdAt', 'updatedAt'])
+        && request.resource.data.uid == request.auth.uid
+        && str(request.resource.data.title, 1, 140)
+        && request.resource.data.messageCount == 0
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow update: if signedIn() && resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['messageCount', 'updatedAt'])
+        && request.resource.data.messageCount == resource.data.messageCount + 2
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+
+      match /messages/{msgId} {
+        function chatOwner() { return get(/databases/$(database)/documents/chats/$(chatId)).data.uid; }
+        allow create: if signedIn() && chatOwner() == request.auth.uid
+          && request.resource.data.keys().hasOnly(['role', 'text', 'seq', 'createdAt'])
+          && request.resource.data.role in ['user', 'assistant']
+          && str(request.resource.data.text, 1, 20000)
+          && request.resource.data.seq is int && request.resource.data.seq >= 0 && request.resource.data.seq < 1000
+          && request.resource.data.createdAt == request.time;
+        allow read: if signedIn() && (chatOwner() == request.auth.uid || isAdmin());
+        allow delete: if isAdmin();
+      }
+    }
+
+    // ---------- Visitor accounts ----------
+    // Profile and saved places. Each visitor reads and writes only their own document.
+    match /users/{uid} {
+      allow read: if (signedIn() && request.auth.uid == uid) || isAdmin();
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['displayName', 'photoURL', 'favorites', 'updatedAt'])
+        && optStr(request.resource.data, 'displayName', 100)
+        && optStr(request.resource.data, 'photoURL', 500)
+        && (!('favorites' in request.resource.data)
+            || (request.resource.data.favorites is list && request.resource.data.favorites.size() <= 50))
+        && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is timestamp);
+      allow delete: if isAdmin() || (signedIn() && request.auth.uid == uid);
+    }
+
+    // Everything else is closed.
+  }
+}

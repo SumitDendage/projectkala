@@ -1,0 +1,3 @@
+# Only for deploying this folder to a *different* Netlify site (e.g. Netlify Drop):
+# forward the AI chat to the live site. To update storied-otter itself, use deploy_netlify.py.
+/api/chat  https://storied-otter-d8b50e.netlify.app/api/chat  200!
