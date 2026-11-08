@@ -535,8 +535,8 @@ button{font:inherit;color:inherit}
 /* ---------- Sign in, create account and reset password ---------- */
 .auth-open,.auth-open body{overflow:hidden}
 .auth[hidden],.auth-card [hidden],.account-menu [hidden]{display:none!important}
-.auth{position:fixed;inset:0;z-index:150;display:grid;place-items:center;overflow-y:auto;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:rgba(7,9,12,.66);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.auth-card{position:relative;width:min(100%,440px);display:grid;gap:16px;padding:clamp(22px,4vw,30px);border-radius:28px;background:var(--night-2);color:var(--paper);border:1px solid var(--night-line);box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 50px 100px -40px rgba(0,0,0,.85)}
+.auth{position:fixed;inset:0;z-index:150;display:flex;overflow-y:auto;overscroll-behavior:contain;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:rgba(7,9,12,.66);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.auth-card{position:relative;flex:none;margin:auto;width:min(100%,440px);display:grid;gap:16px;padding:clamp(22px,4vw,30px);border-radius:28px;background:var(--night-2);color:var(--paper);border:1px solid var(--night-line);box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 50px 100px -40px rgba(0,0,0,.85)}
 .auth-close{position:absolute;top:16px;right:16px;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--night-line);background:transparent;color:var(--fog);cursor:pointer;transition:color .2s,border-color .2s}
 .auth-close:hover{color:var(--paper);border-color:rgba(242,245,247,.3)}
 .auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-right:48px;padding:4px;border-radius:999px;background:rgba(242,245,247,.06)}
@@ -570,6 +570,14 @@ button{font:inherit;color:inherit}
 .account-verify{margin:4px 2px 6px;padding:10px 12px;border-radius:12px;background:rgba(245,165,36,.1);color:var(--paper-2);font-size:13px;line-height:1.45}
 .account-verify .auth-link{display:block;margin-top:6px;font-size:13px}
 
+.auth:not([hidden]){animation:authFade .35s ease-out both}
+.auth:not([hidden]) .auth-card{animation:authRise .6s cubic-bezier(.16,1,.3,1) both}
+@keyframes authFade{from{opacity:0}}
+@keyframes authRise{from{opacity:0;transform:translateY(28px) scale(.97)}}
+.auth-card:focus{outline:none}
+.auth-skip{justify-self:center;color:var(--fog);text-decoration-color:rgba(152,163,173,.45)}
+.auth-skip:hover{color:var(--paper)}
+
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
@@ -580,7 +588,7 @@ button{font:inherit;color:inherit}
 <a class="skip" href="#consultant">Skip to the consultant</a>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <div class="auth" id="auth" hidden>
-  <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle" aria-describedby="authSub">
+  <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle" aria-describedby="authSub" tabindex="-1">
     <button class="auth-close" id="authClose" type="button" aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <div class="auth-tabs" role="tablist" aria-label="Account" id="authTabs">
       <button type="button" role="tab" id="authTabIn" aria-selected="true">Sign in</button>
@@ -606,6 +614,7 @@ button{font:inherit;color:inherit}
     </form>
     <button class="auth-link" id="authBack" type="button" hidden>Back to sign in</button>
     <p class="auth-fine" id="authFine" hidden>Your saved places and chats are stored securely with Google Firebase.</p>
+    <button class="auth-link auth-skip" id="authSkip" type="button" hidden>Continue without an account</button>
   </div>
 </div>
 
@@ -1628,6 +1637,10 @@ button{font:inherit;color:inherit}
     const who = $('#accountWho'), saved = $('#accountSaved'), saveBtn = $('#rdSave'), saveLabel = $('#rdSaveLabel');
     const avIcon = av.innerHTML;
     let me = null, favs = new Set(), loadSeq = 0;
+    const store = (kind, key, val) => {
+      try { const st = window[kind]; if (val === undefined) return st.getItem(key); st.setItem(key, val); } catch (e) { /* private mode */ }
+      return null;
+    };
     if (!fb.enabled) return { signedIn: () => false };
     box.hidden = false; saveBtn.hidden = false;
     const google = () => new firebase.auth.GoogleAuthProvider();
@@ -1697,15 +1710,20 @@ button{font:inherit;color:inherit}
       aPw.setAttribute('autocomplete', m === 'up' ? 'new-password' : 'current-password');
       showMsg('');
     }
-    function openAuth(m = 'in', then = null, note = '') {
+    // auto: opened by the site after loading (not by a click), so it can be skipped and
+    // doesn't pop up the phone keyboard.
+    function openAuth(m = 'in', then = null, note = '', auto = false) {
       afterAuth = then; lastFocus = document.activeElement;
       setMode(m);
       if (note) showMsg(note, 'info');
+      $('#authSkip').hidden = !auto;
       authEl.hidden = false; root.classList.add('auth-open'); if (lenis) lenis.stop();
-      setTimeout(() => (m === 'up' ? aName : aEmail).focus(), 30);
+      authEl.scrollTop = 0;
+      setTimeout(() => (auto ? $('.auth-card') : m === 'up' ? aName : aEmail).focus({ preventScroll: true }), 30);
     }
     function closeAuth() {
       authEl.hidden = true; root.classList.remove('auth-open'); if (lenis) lenis.start();
+      $('#authSkip').hidden = true;
       afterAuth = null; aPw.value = ''; aPw.type = 'password'; $('#authPwToggle').textContent = 'Show';
       if (lastFocus && lastFocus.focus) lastFocus.focus();
     }
@@ -1723,6 +1741,7 @@ button{font:inherit;color:inherit}
     $('#authForgot').addEventListener('click', () => { setMode('reset'); aEmail.focus(); });
     $('#authBack').addEventListener('click', () => { setMode('in'); aEmail.focus(); });
     $('#authClose').addEventListener('click', closeAuth);
+    $('#authSkip').addEventListener('click', () => { closeAuth(); toast('You can sign in anytime from the top right.'); });
     authEl.addEventListener('click', e => { if (e.target === authEl) closeAuth(); });
     document.addEventListener('keydown', e => {
       if (authEl.hidden) return;
@@ -1787,6 +1806,7 @@ button{font:inherit;color:inherit}
       box.classList.toggle('is-in', signedIn);
       const hasPassword = signedIn && (u.providerData || []).some(x => x && x.providerId === 'password');
       loadSeq++;
+      if (signedIn) store('localStorage', 'hg-had-account', '1');
       $('#accountVerify').hidden = !(hasPassword && !u.emailVerified);
       $('#accountPassword').hidden = !hasPassword;
       if (!signedIn) {
@@ -1874,6 +1894,25 @@ button{font:inherit;color:inherit}
     document.addEventListener('hg:places', renderSaved);
     renderSaved(); refreshSave();
     afterLoad(() => fb.load().then(f => { if (f) f.auth.onAuthStateChanged(render); }));
+
+    /* After the loading animation, invite visitors who aren't signed in: once per visit.
+       Returning devices see Sign in; new ones see Create account. */
+    function afterIntro(fn) {
+      const go = () => setTimeout(fn, 900); // let the headline rise first
+      if (!root.classList.contains('intro')) { go(); return; }
+      const mo = new MutationObserver(() => { if (!root.classList.contains('intro')) { mo.disconnect(); go(); } });
+      mo.observe(root, { attributes: true, attributeFilter: ['class'] });
+    }
+    afterLoad(() => afterIntro(async () => {
+      if (store('sessionStorage', 'hg-auth-prompt') === '1') return;
+      const f = await fb.load(); if (!f) return;
+      const u = await fb.user({ anonymous: false });
+      if ((u && !u.isAnonymous) || !authEl.hidden) return;
+      const el = document.activeElement;
+      if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return; // already typing somewhere
+      store('sessionStorage', 'hg-auth-prompt', '1');
+      openAuth(store('localStorage', 'hg-had-account') === '1' ? 'in' : 'up', null, '', true);
+    }));
     return { signedIn: () => !!me };
   })();
 

@@ -79,7 +79,8 @@ Firebase replaced Supabase. It powers four things:
 
 The AI chat itself still runs on the Lovable backend.
 
-**Accounts (Sign in at the top right, or Save on a place):**
+**Accounts (opens after the loading animation; also Sign in at the top right, or Save on a place):**
+- **After loading:** about a second after the intro loader finishes, visitors who aren't signed in see the account window: Create account on a new device, Sign in on a device that has signed in before. It shows once per visit, never to signed-in visitors, and "Continue without an account" closes it so the site and AI chat stay open to everyone.
 - **Create account:** name, email and a password of at least 8 characters. Firebase emails a link to confirm the address; until it's confirmed, the account menu shows a reminder with a resend link.
 - **Sign in:** email and password, or Continue with Google.
 - **Forgot password?:** sends a reset link by email. The message is the same whether or not the email has an account, so nobody can use the form to check who is registered.
