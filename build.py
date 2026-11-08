@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-"""Wrap src/page.html into a complete, deployable site/index.html.
+"""Build everything the live site needs.
 
-src/page.html is written as a body fragment (title, meta and <style> first, then
-markup and scripts). This script moves everything up to the first </style> into
-<head>, adds SEO / social meta, and writes site/index.html.
+1. site/index.html: src/page.html (a body fragment: title, meta and <style> first, then
+   markup and scripts) wrapped into a full page with SEO / social meta.
+2. site/admin/: the React admin dashboard (admin/, built with Vite).
+3. server/dist/api.zip: the Node.js + Express backend bundled as a Netlify Function.
 
-Usage:  python3 build.py
+Usage:  python3 build.py        (needs Node.js 18+ for steps 2 and 3)
 """
 import re
 import shutil
+import subprocess
+import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -68,20 +71,46 @@ def main() -> None:
     # The live site serves its own fonts (fonts/, SIL Open Font License) instead of Google Fonts.
     html = re.sub(r'<link rel="preconnect" href="https://fonts\.(googleapis|gstatic)\.com"[^>]*>\n?', '', html)
     html = re.sub(r'<link rel="stylesheet" href="https://fonts\.googleapis\.com/[^"]+">', FONT_FACES, html, count=1)
-    # Firebase settings live in one public file shared by the site and /admin.
-    html = html.replace('<script src="vendor/', '<script src="firebase-config.js"></script>\n<script src="vendor/', 1)
-    shutil.copyfile(ROOT / "firebase-config.js", OUT.parent / "firebase-config.js")
-    admin = (ROOT / "src" / "admin.html").read_text(encoding="utf-8")
-    (OUT.parent / "admin.html").write_text(admin, encoding="utf-8")
+    # Files from the old Firebase setup are no longer part of the site.
+    for old in ("admin.html", "firebase-config.js"):
+        (OUT.parent / old).unlink(missing_ok=True)
     for folder in ("vendor", "fonts"):
         shutil.rmtree(OUT.parent / folder, ignore_errors=True)
         shutil.copytree(ROOT / folder, OUT.parent / folder)
     vendor_out = OUT.parent / "vendor"
-    missing = [m for m in re.findall(r'src="vendor/([^"]+)"', html + admin) if not (vendor_out / m).is_file()]
+    missing = [m for m in re.findall(r'src="vendor/([^"]+)"', html) if not (vendor_out / m).is_file()]
     if missing:
         raise SystemExit(f"missing vendor files: {missing}")
     OUT.write_text(html, encoding="utf-8")
     print(f"wrote {OUT.relative_to(ROOT)} ({len(html):,} bytes)")
+    build_admin()
+    build_function()
+
+
+def npm(folder: Path, *args: str) -> None:
+    if not (folder / "node_modules").is_dir():
+        subprocess.run(["npm", "install", "--no-audit", "--no-fund"], cwd=folder, check=True)
+    subprocess.run(["npm", *args], cwd=folder, check=True)
+
+
+def build_admin() -> None:
+    """React admin dashboard -> site/admin (served at /admin)."""
+    npm(ROOT / "admin", "run", "build", "--silent")
+    print("wrote site/admin/ (React admin dashboard)")
+
+
+def build_function() -> None:
+    """Express backend -> one bundled file, zipped the way Netlify Functions expect."""
+    server = ROOT / "server"
+    npm(server, "run", "build", "--silent")
+    bundle = server / "dist" / "functions" / "api.js"
+    out = server / "dist" / "api.zip"
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        info = zipfile.ZipInfo("api.js", date_time=(2020, 1, 1, 0, 0, 0))  # fixed time: same code, same zip
+        info.compress_type = zipfile.ZIP_DEFLATED
+        info.external_attr = 0o644 << 16
+        z.writestr(info, bundle.read_bytes())
+    print(f"wrote {out.relative_to(ROOT)} ({out.stat().st_size:,} bytes, Netlify Function 'api')")
 
 
 if __name__ == "__main__":

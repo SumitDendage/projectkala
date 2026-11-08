@@ -456,7 +456,7 @@ button{font:inherit;color:inherit}
 .foot-bar a{color:var(--fog);text-decoration:none;transition:color .2s}
 .foot-bar a:hover{color:var(--paper)}
 
-/* ---------- Firebase features: account, saved places, chat history, enquiries ---------- */
+/* ---------- Accounts, saved places, chat history, enquiries ---------- */
 .account{position:relative;margin-left:10px}
 .account-btn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px 0 6px;border-radius:999px;border:1px solid rgba(128,128,128,.34);background:transparent;cursor:pointer;font:500 14px/1 var(--font-sans);color:inherit;white-space:nowrap;transition:background-color .2s,border-color .2s}
 .account-btn:hover{background:rgba(128,128,128,.14)}
@@ -472,7 +472,7 @@ button{font:inherit;color:inherit}
 .account-empty{padding:4px 10px 8px;color:var(--fog);font-size:13px;line-height:1.45}
 .account-actions{margin-top:8px;padding-top:8px;border-top:1px solid var(--night-line);display:grid;gap:2px}
 @media (max-width:560px){.account-btn{padding:0 5px}.account-btn #accountLabel{display:none}.account{margin-left:6px}}
-@media (max-width:460px){.has-fb .nav .cta-long{display:none}.has-fb .nav .cta-short{display:inline}}
+@media (max-width:460px){.has-account .nav .cta-long{display:none}.has-account .nav .cta-short{display:inline}}
 .ring-save{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--snow-line);background:var(--snow-2);color:var(--ink);font:600 14px/1 var(--font-sans);cursor:pointer;transition:border-color .2s,background-color .2s,color .2s}
 .ring-save:hover{border-color:var(--ink)}
 .ring-save svg{width:15px;height:15px}
@@ -524,11 +524,6 @@ button{font:inherit;color:inherit}
 .auth h2{margin:6px 0 0;font-weight:700;font-size:clamp(1.6rem,4vw,1.9rem);line-height:1.08;letter-spacing:-.035em}
 .auth h2 em{font-family:var(--font-serif);font-style:italic;font-weight:400}
 .auth-sub{margin:-6px 0 2px;color:var(--fog);font-size:14.5px;line-height:1.5}
-.auth-google{display:flex;align-items:center;justify-content:center;gap:10px;height:48px;border-radius:999px;border:0;background:var(--paper);color:var(--night);font:600 15px/1 var(--font-sans);cursor:pointer;transition:background-color .2s}
-.auth-google:hover{background:#fff}
-.auth-google svg{width:18px;height:18px}
-.auth-or{display:flex;align-items:center;gap:12px;color:var(--fog);font:500 11px/1 var(--font-mono);letter-spacing:.14em;text-transform:uppercase}
-.auth-or::before,.auth-or::after{content:"";flex:1;height:1px;background:var(--night-line)}
 .auth form{display:grid;gap:14px}
 .pw{position:relative}
 .pw input{padding-right:74px}
@@ -574,11 +569,9 @@ button{font:inherit;color:inherit}
     </div>
     <h2 id="authTitle">Welcome <em>back.</em></h2>
     <p class="auth-sub" id="authSub">Sign in to save places and keep your chats on every device.</p>
-    <button class="auth-google" id="authGoogle" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Continue with Google</button>
-    <div class="auth-or" id="authOr">or with email</div>
     <form id="authForm" novalidate>
       <label class="field" id="authNameField" hidden><span>Name</span><input id="authName" autocomplete="name" maxlength="100"></label>
-      <label class="field"><span>Email</span><input id="authEmail" type="email" inputmode="email" autocomplete="email" maxlength="200" required></label>
+      <label class="field" id="authEmailField"><span>Email</span><input id="authEmail" type="email" inputmode="email" autocomplete="email" maxlength="200" required></label>
       <div class="field" id="authPwField">
         <label for="authPassword"><span>Password</span></label>
         <div class="pw"><input id="authPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128" required><button class="pw-toggle" id="authPwToggle" type="button" aria-controls="authPassword" aria-pressed="false">Show</button></div>
@@ -591,7 +584,7 @@ button{font:inherit;color:inherit}
       <p class="auth-msg" id="authMsg" role="alert"></p>
     </form>
     <button class="auth-link" id="authBack" type="button" hidden>Back to sign in</button>
-    <p class="auth-fine" id="authFine" hidden>Your saved places and chats are stored securely with Google Firebase.</p>
+    <p class="auth-fine" id="authFine" hidden>Your saved places and the questions you ask are kept with your account, so you can pick them up on any device.</p>
     <button class="auth-link auth-skip" id="authSkip" type="button" hidden>Continue without an account</button>
   </div>
 </div>
@@ -1144,55 +1137,48 @@ button{font:inherit;color:inherit}
     return api;
   })();
 
-  /* ---------- Firebase (loaded in the background; the page never waits for it) ----------
-     Settings come from firebase-config.js. Without them the site runs as before:
-     built-in places, no sign-in, no saving. */
+  /* ---------- Backend: Node.js + Express at /api/v1 (the page never waits for it) ----------
+     One call per page load records the visit and says who is signed in. If the backend can't be
+     reached, the site runs as before: no accounts, no saving. */
   const toast = (() => {
     const el = $('#toast'); let t = 0;
     return msg => { el.textContent = msg; el.hidden = false; clearTimeout(t); t = setTimeout(() => { el.hidden = true; }, 4200); };
   })();
   const afterLoad = fn => (document.readyState === 'complete' ? setTimeout(fn, 0) : addEventListener('load', () => setTimeout(fn, 0), { once: true }));
-  const fb = (() => {
-    const cfg = window.HIDDEN_GEMS_FIREBASE && window.HIDDEN_GEMS_FIREBASE.projectId ? window.HIDDEN_GEMS_FIREBASE : null;
-    const SDK = 'vendor/firebase@12.19.0/firebase-';
-    let loading = null, restored = null;
-    const script = src => new Promise((res, rej) => {
-      const el = document.createElement('script'); el.src = src; el.async = false;
-      el.onload = res; el.onerror = () => rej(new Error('could not load ' + src)); document.head.append(el);
-    });
-    function load() {
-      if (!cfg) return Promise.resolve(null);
-      if (!loading) loading = Promise.all(['app', 'auth', 'firestore'].map(n => script(`${SDK}${n}-compat.js`)))
-        .then(() => {
-          const fresh = !firebase.apps.length;
-          const app = fresh ? firebase.initializeApp(cfg) : firebase.app();
-          // Local Firebase emulators, for testing on this computer only.
-          if (fresh && cfg.emulators && /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
-            firebase.auth().useEmulator(cfg.emulators.auth);
-            firebase.firestore().useEmulator(cfg.emulators.firestore[0], cfg.emulators.firestore[1]);
-          }
-          return { app, auth: firebase.auth(), db: firebase.firestore(), FieldValue: firebase.firestore.FieldValue };
-        })
-        .catch(e => { console.info('Firebase is unavailable:', e.message); return null; });
-      return loading;
+  const api = (() => {
+    const BASE = window.HIDDEN_GEMS_API || '/api/v1';
+    const fail = (code, status) => Object.assign(new Error(code), { code, status });
+    async function call(path, { method = 'GET', body } = {}) {
+      let res;
+      try {
+        res = await fetch(BASE + path, {
+          method, credentials: 'same-origin',
+          headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
+          body: body === undefined ? undefined : JSON.stringify(body)
+        });
+      } catch (e) { throw fail('network', 0); }
+      if (res.status === 204) return null;
+      let data = null;
+      try { data = await res.json(); } catch (e) { /* not JSON */ }
+      if (!res.ok) throw fail((data && data.error) || 'server_error', res.status);
+      return data;
     }
-    // The signed-in visitor (restoring a previous session first). With anonymous: true, a
-    // first-time visitor gets a private anonymous account, so their chats and enquiries can be saved.
-    async function user({ anonymous = true } = {}) {
-      const f = await load(); if (!f) return null;
-      if (!restored) restored = new Promise(r => { const off = f.auth.onAuthStateChanged(() => { off(); r(); }); });
-      await restored;
-      if (f.auth.currentUser || !anonymous) return f.auth.currentUser;
-      try { return (await f.auth.signInAnonymously()).user; }
-      catch (e) { console.info('Anonymous sign-in failed:', e.code || e.message); return null; }
+    // state: 'ready' (everything works), 'setup' (backend up, database not connected yet) or 'off'.
+    let started = null;
+    function start() {
+      if (!started) {
+        let timezone = null;
+        try { timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || null; } catch (e) { /* unknown */ }
+        started = call('/visit', { method: 'POST', body: { path: location.pathname, referrer: document.referrer || null, language: navigator.language || null, timezone } })
+          .then(d => ({ state: 'ready', user: d.user, mail: d.mail }))
+          .catch(e => ({ state: e.code === 'not_configured' ? 'setup' : 'off', user: null, mail: false }));
+      }
+      return started;
     }
-    return { enabled: !!cfg, load, user };
+    return { call, start };
   })();
-  root.classList.toggle('has-fb', fb.enabled);
 
-  /* ---------- Places data ----------
-     Loaded from Firebase Firestore (collection "places", India only, published ones).
-     The list below is the same verified data, built in so the ring works without Firebase. */
+  /* ---------- Places data (verified; edit this list to change the ring) ---------- */
   const PLACES = [
     { name: 'Jaisalmer', region: 'Rajasthan', state: 'Rajasthan', cat: 'Desert fort', kind: 'desert', img: 'places/jaisalmer.jpg', coord: '26.91° N, 70.91° E', best: 'Oct–Mar', desc: 'Jaisalmer Fort is one of the few forts in the world where people still live, inside yellow sandstone walls that turn honey-gold at sunset. It is part of the Hill Forts of Rajasthan World Heritage Site.' },
     { name: 'Manali', region: 'Kullu, Himachal Pradesh', state: 'Himachal Pradesh', cat: 'Mountain valley', kind: 'mountains', img: 'places/manali.jpg', coord: '32.24° N, 77.19° E', best: 'Apr–Jun, Sep–Nov', desc: 'A town at about 2,050 m at the head of the Kullu Valley, on the Beas river. Solang Valley, about 14 km away, is the place for paragliding and snow.' },
@@ -1206,32 +1192,6 @@ button{font:inherit;color:inherit}
   ];
   PLACES.forEach(pl => { pl.slug = pl.img.replace(/^places\/|\.\w+$/g, ''); });
   root.dataset.places = 'built-in';
-  async function loadPlaces() {
-    const timeout = ms => new Promise((_, rej) => setTimeout(() => rej(new Error('timed out')), ms));
-    try {
-      const f = await Promise.race([fb.load(), timeout(10000)]);
-      if (!f) return null;
-      const snap = await Promise.race([f.db.collection('places').where('published', '==', true).get(), timeout(10000)]);
-      const SCENE = { himalaya: 'himalaya', konkan: 'konkan', northeast: 'ziro', monsoon: 'monsoon' };
-      const list = snap.docs.map(doc => ({ slug: doc.id, ...doc.data() }))
-        .sort((x, y) => (x.sortOrder ?? 999) - (y.sortOrder ?? 999))
-        .map(r => {
-          const lat = Number(r.lat), lon = Number(r.lng), scene = SCENE[r.kind];
-          const img = typeof r.imagePath === 'string' && /^places\/[a-z0-9-]+\.(jpg|webp|png)$/.test(r.imagePath) ? r.imagePath : null;
-          if (!r.name || r.country !== 'India' || !KIND[r.kind] || (!img && !scene) || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-          return {
-            slug: r.slug, name: String(r.name), state: String(r.state || ''),
-            region: !r.region || r.region === r.name || r.region === r.state ? String(r.state || '') : `${r.region}, ${r.state}`,
-            cat: String(r.category || KIND[r.kind].label), kind: r.kind, img, scene, v: 0,
-            coord: `${lat.toFixed(2)}° N, ${lon.toFixed(2)}° E`, best: String(r.bestMonths || ''), desc: String(r.description || '')
-          };
-        }).filter(Boolean);
-      return list.length >= 3 ? list : null;
-    } catch (e) {
-      console.info('Places: using the built-in list (' + e.message + ')');
-      return null;
-    }
-  }
   const KIND = {
     mountains: { label: 'Mountains', color: 'var(--slate)' },
     water: { label: 'On the water', color: 'var(--rain)' },
@@ -1592,77 +1552,54 @@ button{font:inherit;color:inherit}
     };
   })();
 
-  afterLoad(() => loadPlaces().then(list => {
-    if (!list) return;
-    PLACES.splice(0, PLACES.length, ...list);
-    root.dataset.places = 'firebase';
-    ring.rebuild();
-    document.dispatchEvent(new CustomEvent('hg:places'));
-    if (motion && window.ScrollTrigger) ScrollTrigger.refresh();
-  }));
 
-  /* ---------- Visitor accounts: Google sign-in and saved places ---------- */
+  /* ---------- Visitor accounts: sign up, sign in, forgot password, saved places ---------- */
   const account = (() => {
     const box = $('#account'), btn = $('#accountBtn'), menu = $('#accountMenu'), label = $('#accountLabel'), av = $('#accountAv');
     const who = $('#accountWho'), saved = $('#accountSaved'), saveBtn = $('#rdSave'), saveLabel = $('#rdSaveLabel');
     const avIcon = av.innerHTML;
-    let me = null, favs = new Set(), loadSeq = 0;
+    let me = null, favs = new Set(), loadSeq = 0, state = 'off';
     const store = (kind, key, val) => {
       try { const st = window[kind]; if (val === undefined) return st.getItem(key); st.setItem(key, val); } catch (e) { /* private mode */ }
       return null;
     };
-    if (!fb.enabled) return { signedIn: () => false };
-    box.hidden = false; saveBtn.hidden = false;
-    const google = () => new firebase.auth.GoogleAuthProvider();
-    const profile = u => {
-      const g = (u.providerData || []).find(x => x && x.providerId === 'google.com') || {};
-      return { name: u.displayName || g.displayName || u.email || g.email || 'You', photo: u.photoURL || g.photoURL || '' };
-    };
     function openMenu(open) { menu.hidden = !open; btn.setAttribute('aria-expanded', String(open)); }
-    async function googleSignIn() {
-      const f = await fb.load();
-      if (!f) { showMsg('Accounts aren’t available right now. Please try again in a moment.'); return null; }
-      await fb.user({ anonymous: false });
-      const cur = f.auth.currentUser;
-      try {
-        // A visitor who already chatted keeps their saved chats: the anonymous account is upgraded.
-        if (cur && cur.isAnonymous) await cur.linkWithPopup(google());
-        else await f.auth.signInWithPopup(google());
-      } catch (e) {
-        if (e.code === 'auth/credential-already-in-use' && e.credential) await f.auth.signInWithCredential(e.credential).catch(() => {});
-        else if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') { showMsg(authError(e)); return null; }
-      }
-      const u = f.auth.currentUser;
-      return u && !u.isAnonymous ? u : null;
+
+    // Links from our emails: ?reset=… (choose a new password) and ?verify=… (confirm email).
+    const params = new URLSearchParams(location.search);
+    let resetToken = params.get('reset');
+    const verifyToken = params.get('verify');
+    if (resetToken || verifyToken) {
+      params.delete('reset'); params.delete('verify');
+      const q = params.toString();
+      history.replaceState(history.state, '', location.pathname + (q ? '?' + q : '') + location.hash);
     }
 
-    /* Sign in, create account and reset password (email and password, or Google). */
+    /* The window: Sign in, Create account, Forgot password, and Choose a new password. */
     const authEl = $('#auth'), authForm = $('#authForm'), authMsg = $('#authMsg'), authSubmit = $('#authSubmit');
     const aName = $('#authName'), aEmail = $('#authEmail'), aPw = $('#authPassword');
     let mode = 'in', afterAuth = null, lastFocus = null;
     const COPY = {
       in: { title: 'Welcome <em>back.</em>', sub: 'Sign in to save places and keep your chats on every device.', submit: 'Sign in' },
       up: { title: 'Create your <em>account.</em>', sub: 'Save places from the ring and pick up your chats on any device.', submit: 'Create account' },
-      reset: { title: 'Reset your <em>password.</em>', sub: 'Enter the email you signed up with and we’ll send you a link to choose a new password.', submit: 'Send reset link' }
+      reset: { title: 'Reset your <em>password.</em>', sub: 'Enter the email you signed up with and we’ll send you a link to choose a new password.', submit: 'Send reset link' },
+      newpw: { title: 'Choose a new <em>password.</em>', sub: 'Pick a new password for your account. You’ll be signed in straight after.', submit: 'Save new password' }
     };
     const SAME = 'That email and password don’t match. Try again, or reset your password.';
-    const AUTH_ERRORS = {
-      'auth/invalid-email': 'Enter a valid email address.',
-      'auth/missing-email': 'Enter your email address.',
-      'auth/missing-password': 'Enter your password.',
-      'auth/weak-password': 'Choose a stronger password with at least 8 characters.',
-      'auth/password-does-not-meet-requirements': 'Choose a stronger password: at least 8 characters, with letters and numbers.',
-      'auth/email-already-in-use': 'An account with this email already exists. Sign in instead, or reset your password.',
-      'auth/credential-already-in-use': 'An account with this email already exists. Sign in instead, or reset your password.',
-      'auth/invalid-credential': SAME, 'auth/invalid-login-credentials': SAME, 'auth/wrong-password': SAME, 'auth/user-not-found': SAME,
-      'auth/too-many-requests': 'Too many attempts. Wait a few minutes and try again, or reset your password.',
-      'auth/user-disabled': 'This account has been turned off. Contact the site owner.',
-      'auth/network-request-failed': 'No connection. Check your internet and try again.',
-      'auth/operation-not-allowed': 'This sign-in method isn’t turned on for the site yet.',
-      'auth/popup-blocked': 'Your browser blocked the Google window. Allow pop-ups for this site and try again.',
-      'auth/unauthorized-domain': 'Sign-in needs this website added in Firebase → Authentication → Authorized domains.'
+    const ERRORS = {
+      name_required: 'Enter your name.',
+      invalid_email: 'Enter a valid email address.',
+      missing_fields: 'Enter your email and password.',
+      weak_password: 'Choose a password with at least 8 characters.',
+      email_in_use: 'An account with this email already exists. Sign in instead, or reset your password.',
+      invalid_credentials: SAME,
+      too_many: 'Too many attempts. Wait a few minutes and try again, or reset your password.',
+      invalid_token: 'This link has expired or was already used. Enter your email to get a new one.',
+      mail_not_configured: 'Password emails aren’t switched on for the site yet. Please try again later.',
+      not_configured: 'Accounts are almost ready. Please try again a little later.',
+      network: 'No connection. Check your internet and try again.'
     };
-    const authError = e => AUTH_ERRORS[e && e.code] || 'Something went wrong. Please try again.';
+    const authError = e => ERRORS[e && e.code] || 'Something went wrong. Please try again.';
     function showMsg(text, kind = '') { authMsg.textContent = text; authMsg.className = 'auth-msg' + (kind ? ' ' + kind : ''); }
     function setMode(m) {
       mode = m;
@@ -1670,14 +1607,16 @@ button{font:inherit;color:inherit}
       $('#authTitle').innerHTML = c.title; $('#authSub').textContent = c.sub; authSubmit.textContent = c.submit;
       $('#authTabIn').setAttribute('aria-selected', String(m === 'in'));
       $('#authTabUp').setAttribute('aria-selected', String(m === 'up'));
-      $('#authTabs').hidden = $('#authGoogle').hidden = $('#authOr').hidden = m === 'reset';
+      $('#authTabs').hidden = m === 'reset' || m === 'newpw';
       $('#authNameField').hidden = m !== 'up';
-      $('#authPwField').hidden = $('#authRow').hidden = m === 'reset';
-      $('#authHint').hidden = m !== 'up';
+      $('#authEmailField').hidden = m === 'newpw';
+      $('#authPwField').hidden = m === 'reset';
+      $('#authRow').hidden = m === 'reset';
+      $('#authHint').hidden = !(m === 'up' || m === 'newpw');
       $('#authForgot').hidden = m !== 'in';
       $('#authBack').hidden = m !== 'reset';
       $('#authFine').hidden = m !== 'up';
-      aPw.setAttribute('autocomplete', m === 'up' ? 'new-password' : 'current-password');
+      aPw.setAttribute('autocomplete', m === 'up' || m === 'newpw' ? 'new-password' : 'current-password');
       showMsg('');
     }
     // auto: opened by the site after loading (not by a click), so it can be skipped and
@@ -1689,7 +1628,7 @@ button{font:inherit;color:inherit}
       $('#authSkip').hidden = !auto;
       authEl.hidden = false; root.classList.add('auth-open'); if (lenis) lenis.stop();
       authEl.scrollTop = 0;
-      setTimeout(() => (auto ? $('.auth-card') : m === 'up' ? aName : aEmail).focus({ preventScroll: true }), 30);
+      setTimeout(() => (auto ? $('.auth-card') : m === 'up' ? aName : m === 'newpw' ? aPw : aEmail).focus({ preventScroll: true }), 30);
     }
     function closeAuth() {
       authEl.hidden = true; root.classList.remove('auth-open'); if (lenis) lenis.start();
@@ -1703,9 +1642,6 @@ button{font:inherit;color:inherit}
       await render(u);
       if (then) then();
     }
-    // Firebase links in emails return here; if this site isn't an authorized domain yet, send them without one.
-    const back = () => ({ url: location.origin + '/' });
-    const withReturn = (send) => send(back()).catch(e => (e && e.code === 'auth/unauthorized-continue-uri' ? send(undefined) : Promise.reject(e)));
     $('#authTabIn').addEventListener('click', () => setMode('in'));
     $('#authTabUp').addEventListener('click', () => setMode('up'));
     $('#authForgot').addEventListener('click', () => { setMode('reset'); aEmail.focus(); });
@@ -1729,76 +1665,68 @@ button{font:inherit;color:inherit}
       e.currentTarget.textContent = show ? 'Hide' : 'Show';
       e.currentTarget.setAttribute('aria-pressed', String(show));
     });
-    $('#authGoogle').addEventListener('click', async () => {
-      const u = await googleSignIn();
-      if (u) finish(u, `Signed in as ${profile(u).name}.`);
-    });
     authForm.addEventListener('submit', async e => {
       e.preventDefault();
       const email = aEmail.value.trim(), pw = aPw.value, name = aName.value.trim();
       if (mode === 'up' && !name) { showMsg('Enter your name.'); aName.focus(); return; }
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showMsg('Enter a valid email address.'); aEmail.focus(); return; }
-      if (mode === 'up' && pw.length < 8) { showMsg('Choose a password with at least 8 characters.'); aPw.focus(); return; }
+      if (mode !== 'newpw' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showMsg('Enter a valid email address.'); aEmail.focus(); return; }
+      if ((mode === 'up' || mode === 'newpw') && pw.length < 8) { showMsg('Choose a password with at least 8 characters.'); aPw.focus(); return; }
       if (mode === 'in' && !pw) { showMsg('Enter your password.'); aPw.focus(); return; }
-      const f = await fb.load();
-      if (!f) { showMsg('Accounts aren’t available right now. Please try again in a moment.'); return; }
+      if (state === 'off') { showMsg('Accounts aren’t available right now. Please try again in a moment.'); return; }
       if (authSubmit.getAttribute('aria-disabled') === 'true') return;
       const label = authSubmit.textContent;
       authSubmit.setAttribute('aria-disabled', 'true');
-      authSubmit.textContent = mode === 'reset' ? 'Sending…' : mode === 'up' ? 'Creating your account…' : 'Signing in…';
+      authSubmit.textContent = { reset: 'Sending…', up: 'Creating your account…', newpw: 'Saving…', in: 'Signing in…' }[mode];
+      const post = (path, body) => api.call(path, { method: 'POST', body });
       try {
         if (mode === 'reset') {
-          await withReturn(opts => f.auth.sendPasswordResetEmail(email, opts))
-            .catch(err => { if (!err || err.code !== 'auth/user-not-found') throw err; });
+          await post('/auth/forgot', { email });
           showMsg(`If an account exists for ${email}, a reset link is on its way. Check your inbox and spam folder.`, 'ok');
+        } else if (mode === 'newpw') {
+          const d = await post('/auth/reset', { token: resetToken, password: pw });
+          resetToken = null;
+          finish(d.user, 'Your password is changed and you’re signed in.');
         } else if (mode === 'up') {
-          await fb.user({ anonymous: false });
-          const cur = f.auth.currentUser, cred = firebase.auth.EmailAuthProvider.credential(email, pw);
-          // Upgrading the anonymous account keeps the chats this visitor already saved.
-          const u = cur && cur.isAnonymous ? (await cur.linkWithCredential(cred)).user : (await f.auth.createUserWithEmailAndPassword(email, pw)).user;
-          await u.updateProfile({ displayName: name.slice(0, 100) });
-          withReturn(opts => u.sendEmailVerification(opts)).catch(() => {});
-          finish(u, `Welcome, ${name.split(' ')[0]}. We sent a link to ${email} to confirm your address.`);
+          const d = await post('/auth/signup', { name, email, password: pw });
+          const first = d.user.name.split(' ')[0];
+          finish(d.user, d.verificationSent ? `Welcome, ${first}. We sent a link to ${d.user.email} to confirm your address.` : `Welcome, ${first}. Your account is ready.`);
         } else {
-          const u = (await f.auth.signInWithEmailAndPassword(email, pw)).user;
-          finish(u, `Signed in as ${u.displayName || u.email}.`);
+          const d = await post('/auth/signin', { email, password: pw });
+          finish(d.user, `Signed in as ${d.user.name}.`);
         }
       } catch (err) {
+        if (mode === 'newpw' && err.code === 'invalid_token') setMode('reset');
         showMsg(authError(err));
       } finally {
         authSubmit.removeAttribute('aria-disabled');
-        authSubmit.textContent = label;
+        authSubmit.textContent = COPY[mode].submit;
       }
     });
+
     function render(u) {
-      const signedIn = !!(u && !u.isAnonymous);
-      me = signedIn ? u : null;
+      me = u || null;
+      const signedIn = !!me;
       box.classList.toggle('is-in', signedIn);
-      const hasPassword = signedIn && (u.providerData || []).some(x => x && x.providerId === 'password');
       loadSeq++;
       if (signedIn) store('localStorage', 'hg-had-account', '1');
-      $('#accountVerify').hidden = !(hasPassword && !u.emailVerified);
-      $('#accountPassword').hidden = !hasPassword;
+      $('#accountVerify').hidden = !(signedIn && !me.emailVerified);
+      $('#accountPassword').hidden = !signedIn;
       if (!signedIn) {
-        label.textContent = 'Sign in'; av.innerHTML = avIcon; av.style.backgroundImage = '';
+        label.textContent = 'Sign in'; av.innerHTML = avIcon;
         favs = new Set(); renderSaved(); refreshSave(); openMenu(false); return;
       }
-      const pr = profile(u);
-      label.textContent = pr.name.split(' ')[0];
-      if (/^https:\/\/[^"'\s()]+$/.test(pr.photo)) { av.innerHTML = ''; av.style.backgroundImage = `url("${pr.photo}")`; }
-      else { av.style.backgroundImage = ''; av.textContent = pr.name.trim().charAt(0).toUpperCase(); }
-      who.textContent = 'Signed in as ' + pr.name;
-      return loadProfile(pr);
+      label.textContent = me.name.split(' ')[0];
+      av.textContent = me.name.trim().charAt(0).toUpperCase();
+      who.textContent = 'Signed in as ' + me.name;
+      return loadSaved();
     }
-    async function loadProfile(pr) {
-      const f = await fb.load(); if (!f || !me) return;
-      const ref = f.db.collection('users').doc(me.uid), seq = loadSeq;
+    async function loadSaved() {
+      const seq = loadSeq;
       let list = [];
-      try { const snap = await ref.get(); list = (snap.exists && snap.data().favorites) || []; } catch (e) { /* keep an empty list */ }
+      try { list = (await api.call('/me/saved')).places; } catch (e) { /* keep an empty list */ }
       if (seq !== loadSeq) return; // signed out, or a place was saved meanwhile
       favs = new Set(list);
       renderSaved(); refreshSave();
-      ref.set({ displayName: pr.name.slice(0, 100), photoURL: /^https:\/\//.test(pr.photo) ? pr.photo.slice(0, 500) : null, updatedAt: f.FieldValue.serverTimestamp() }, { merge: true }).catch(() => {});
     }
     function renderSaved() {
       const items = PLACES.map((pl, i) => ({ pl, i })).filter(x => favs.has(x.pl.slug));
@@ -1828,62 +1756,102 @@ button{font:inherit;color:inherit}
           `Sign in or create an account to save ${pl.name}.`);
         return;
       }
-      const f = await fb.load(), on = !favs.has(pl.slug);
+      const on = !favs.has(pl.slug);
       loadSeq++;
       if (on) favs.add(pl.slug); else favs.delete(pl.slug);
       renderSaved(); refreshSave();
       try {
-        await f.db.collection('users').doc(me.uid).set({ favorites: [...favs].slice(0, 50), updatedAt: f.FieldValue.serverTimestamp() }, { merge: true });
+        const d = await api.call('/me/saved/' + encodeURIComponent(pl.slug), { method: on ? 'PUT' : 'DELETE' });
+        favs = new Set(d.places); renderSaved(); refreshSave();
         toast(on ? `${pl.name} saved. Find it under your name at the top.` : `${pl.name} removed from saved places.`);
       } catch (e) {
         if (on) favs.delete(pl.slug); else favs.add(pl.slug);
-        renderSaved(); refreshSave(); toast('That didn’t save. Please try again.');
+        renderSaved(); refreshSave();
+        toast(e.code === 'too_many_saved' ? 'You can save up to 50 places.' : 'That didn’t save. Please try again.');
       }
     }
     btn.addEventListener('click', () => { if (!me) openAuth('in'); else openMenu(menu.hidden); });
     $('#accountResend').addEventListener('click', async () => {
       if (!me) return;
-      try { await withReturn(opts => me.sendEmailVerification(opts)); toast(`Confirmation link sent to ${me.email}.`); }
+      try { await api.call('/auth/resend-verification', { method: 'POST' }); toast(`Confirmation link sent to ${me.email}.`); }
       catch (e) { toast(authError(e)); }
     });
+    // Confirmed the email in another tab? The reminder clears when they come back.
     window.addEventListener('focus', () => {
-      if (me && !me.emailVerified && !$('#accountVerify').hidden) me.reload().then(() => { if (me) render(me); }).catch(() => {});
+      if (!me || me.emailVerified) return;
+      api.call('/auth/me').then(d => { if (d.user && me && d.user.id === me.id && d.user.emailVerified) render(d.user); }).catch(() => {});
     });
     $('#accountPassword').addEventListener('click', async () => {
       openMenu(false);
-      const f = await fb.load(); if (!f || !me) return;
-      try { await withReturn(opts => f.auth.sendPasswordResetEmail(me.email, opts)); toast(`We sent a link to ${me.email} to choose a new password.`); }
+      if (!me) return;
+      try { await api.call('/auth/forgot', { method: 'POST', body: { email: me.email } }); toast(`We sent a link to ${me.email} to choose a new password.`); }
       catch (e) { toast(authError(e)); }
     });
     document.addEventListener('click', e => { if (!menu.hidden && !box.contains(e.target)) openMenu(false); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) { openMenu(false); btn.focus(); } });
-    $('#accountSignOut').addEventListener('click', async () => { openMenu(false); const f = await fb.load(); if (f) { await f.auth.signOut(); toast('Signed out.'); } });
+    $('#accountSignOut').addEventListener('click', async () => {
+      openMenu(false);
+      try { await api.call('/auth/signout', { method: 'POST' }); } catch (e) { /* the cookie expires anyway */ }
+      render(null); toast('Signed out.');
+    });
     $('#accountChats').addEventListener('click', () => { openMenu(false); scrollToChat(); chat.openHistory(true); });
     saveBtn.addEventListener('click', toggleSave);
     document.addEventListener('hg:place', refreshSave);
-    document.addEventListener('hg:places', renderSaved);
     renderSaved(); refreshSave();
-    afterLoad(() => fb.load().then(f => { if (f) f.auth.onAuthStateChanged(render); }));
 
-    /* After the loading animation, invite visitors who aren't signed in: once per visit.
-       Returning devices see Sign in; new ones see Create account. */
+    /* After the loading animation: open the window from an emailed link, or invite visitors who
+       aren't signed in (once per visit). Returning devices see Sign in; new ones see Create account. */
     function afterIntro(fn) {
       const go = () => setTimeout(fn, 900); // let the headline rise first
       if (!root.classList.contains('intro')) { go(); return; }
       const mo = new MutationObserver(() => { if (!root.classList.contains('intro')) { mo.disconnect(); go(); } });
       mo.observe(root, { attributes: true, attributeFilter: ['class'] });
     }
-    afterLoad(() => afterIntro(async () => {
-      if (store('sessionStorage', 'hg-auth-prompt') === '1') return;
-      const f = await fb.load(); if (!f) return;
-      const u = await fb.user({ anonymous: false });
-      if ((u && !u.isAnonymous) || !authEl.hidden) return;
-      const el = document.activeElement;
-      if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return; // already typing somewhere
-      store('sessionStorage', 'hg-auth-prompt', '1');
-      openAuth(store('localStorage', 'hg-had-account') === '1' ? 'in' : 'up', null, '', true);
-    }));
+    afterLoad(async () => {
+      const s = await api.start();
+      state = s.state;
+      if (state === 'off') return;
+      root.classList.add('has-account');
+      box.hidden = false; saveBtn.hidden = false;
+      render(s.user);
+      if (verifyToken && state === 'ready') {
+        api.call('/auth/verify', { method: 'POST', body: { token: verifyToken } })
+          .then(d => { toast('Thank you. Your email address is confirmed.'); if (d.user) render(d.user); })
+          .catch(() => toast('That confirmation link has expired or was already used. Sign in to get a new one.'));
+      }
+      afterIntro(() => {
+        if (!authEl.hidden) return;
+        if (resetToken) { store('sessionStorage', 'hg-auth-prompt', '1'); openAuth('newpw'); return; }
+        if (me || store('sessionStorage', 'hg-auth-prompt') === '1') return;
+        const el = document.activeElement;
+        if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return; // already typing somewhere
+        store('sessionStorage', 'hg-auth-prompt', '1');
+        openAuth(store('localStorage', 'hg-had-account') === '1' ? 'in' : 'up', null, '', true);
+      });
+    });
     return { signedIn: () => !!me };
+  })();
+
+  /* ---------- Places viewed: a place counts once it stays in front for 1.5 s with the ring on screen ---------- */
+  (function trackPlaces() {
+    const seen = new Set();
+    let onScreen = false, timer = 0;
+    function later() {
+      clearTimeout(timer);
+      if (!onScreen) return;
+      timer = setTimeout(async () => {
+        const pl = ring.place();
+        if (!onScreen || !pl || seen.has(pl.slug)) return;
+        if ((await api.start()).state !== 'ready') return;
+        seen.add(pl.slug);
+        api.call('/track/place', { method: 'POST', body: { slug: pl.slug } }).catch(() => seen.delete(pl.slug));
+      }, 1500);
+    }
+    if ('IntersectionObserver' in window) {
+      // The section is very tall (it scrolls the ring), so watch for it crossing the middle of the screen.
+      new IntersectionObserver(entries => { onScreen = entries[0].isIntersecting; later(); }, { rootMargin: '-40% 0px -40% 0px' }).observe($('#places'));
+    }
+    document.addEventListener('hg:place', later);
   })();
 
   /* ---------- Intro loader: covers orbit a 0 to 100 count, then blinds open ---------- */
@@ -1985,12 +1953,13 @@ button{font:inherit;color:inherit}
     const sendBtn = $('#sendBtn'), stopBtn = $('#stopBtn'), resetBtn = $('#newChat'), status = $('#chatStatus'), statusWrap = $('#chatStatusWrap');
     const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
     let chatId = uid(), history = [], busy = false, ctrl = null;
-    let remoteId = null, seq = 0, saving = Promise.resolve();
+    let remoteId = null, saving = Promise.resolve();
     const histBtn = $('#chatHistoryBtn'), histBox = $('#chatHistory');
-    if (fb.enabled) {
+    afterLoad(() => api.start().then(s => {
+      if (s.state !== 'ready') return;
       histBtn.hidden = false;
-      $('.chat-note').textContent = 'AI answers can be wrong. Check roads, permits and weather before you travel. Your chats are saved so you can come back to them.';
-    }
+      $('.chat-note').textContent = 'AI answers can be wrong. Check roads, permits and weather before you travel. Your questions are saved so you can come back to them, and to help us improve.';
+    }));
     if (innerWidth < 440) input.placeholder = 'Ask about a hidden place…';
     if (window.DOMPurify) DOMPurify.addHook('afterSanitizeAttributes', node => { if (node.tagName === 'A') { node.setAttribute('target', '_blank'); node.setAttribute('rel', 'noopener noreferrer'); } });
     const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2063,27 +2032,16 @@ button{font:inherit;color:inherit}
         }
       } finally { ctrl = null; setBusy(false); toBottom(); }
     }
-    // Save one finished question and answer to the visitor's own chat in Firestore.
+    // Save one finished question and its answer to this visitor's chat (backend: /api/v1/chats).
     async function persist(q, a) {
-      if (!fb.enabled || !q || q.role !== 'user' || !a || !a.text) return;
+      if (!q || q.role !== 'user' || !a || !a.text) return;
+      if ((await api.start()).state !== 'ready') return;
       try {
-        const u = await fb.user(), f = await fb.load(); if (!u || !f) return;
-        const FV = f.FieldValue, chats = f.db.collection('chats');
-        if (!remoteId) {
-          const ref = chats.doc();
-          await ref.set({ uid: u.uid, title: q.text.slice(0, 140), messageCount: 0, createdAt: FV.serverTimestamp(), updatedAt: FV.serverTimestamp() });
-          remoteId = ref.id; seq = 0;
-        }
-        const ref = chats.doc(remoteId), batch = f.db.batch();
-        batch.set(ref.collection('messages').doc(), { role: 'user', text: q.text.slice(0, 20000), seq, createdAt: FV.serverTimestamp() });
-        batch.set(ref.collection('messages').doc(), { role: 'assistant', text: a.text.slice(0, 20000), seq: seq + 1, createdAt: FV.serverTimestamp() });
-        batch.update(ref, { messageCount: FV.increment(2), updatedAt: FV.serverTimestamp() });
-        await batch.commit();
-        seq += 2;
+        const d = await api.call('/chats/messages', { method: 'POST', body: { chatId: remoteId, question: q.text.slice(0, 4000), answer: a.text.slice(0, 20000) } });
+        remoteId = d.chatId;
       } catch (e) { console.info('Chat not saved:', e.code || e.message); }
     }
-    const stamp = t => (t && t.toMillis ? t.toMillis() : 0);
-    const day = t => (t && t.toDate ? t.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Just now');
+    const day = t => (t ? new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Just now');
     function histView(...rows) {
       const head = document.createElement('div'), h = document.createElement('h3');
       head.className = 'hist-head'; h.textContent = 'Your chats'; head.append(h);
@@ -2092,15 +2050,12 @@ button{font:inherit;color:inherit}
     const histNote = text => { const p = document.createElement('p'); p.className = 'hist-note'; p.textContent = text; return p; };
     function closeHistory() { histBox.hidden = true; inner.hidden = false; empty.hidden = history.length > 0; histBtn.textContent = 'Your chats'; }
     async function openHistory(forceOpen) {
-      if (!fb.enabled) return;
+      if ((await api.start()).state !== 'ready') return;
       if (!histBox.hidden && !forceOpen) { closeHistory(); return; }
       histBox.hidden = false; inner.hidden = true; empty.hidden = true; histBtn.textContent = 'Back to chat';
       histView(histNote('Loading your chats…'));
-      const u = await fb.user({ anonymous: false }), f = await fb.load();
-      if (!u || !f) { histView(histNote('No saved chats yet. Ask a question and it will appear here.')); return; }
       try {
-        const snap = await f.db.collection('chats').where('uid', '==', u.uid).limit(50).get();
-        const rows = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((x, y) => stamp(y.updatedAt) - stamp(x.updatedAt));
+        const rows = (await api.call('/chats')).chats;
         if (!rows.length) { histView(histNote('No saved chats yet. Ask a question and it will appear here.')); return; }
         histView(...rows.map(r => {
           const b = document.createElement('button'), t = document.createElement('strong'), m = document.createElement('small');
@@ -2112,17 +2067,15 @@ button{font:inherit;color:inherit}
       } catch (e) { histView(histNote('Couldn’t load your chats. Please try again.')); }
     }
     async function openSaved(id) {
-      const f = await fb.load(); if (!f) return;
       try {
-        const snap = await f.db.collection('chats').doc(id).collection('messages').orderBy('seq').get();
+        const d = await api.call('/chats/' + encodeURIComponent(id));
         if (ctrl) ctrl.abort();
         history = []; inner.innerHTML = ''; chatId = uid();
-        snap.docs.forEach(d => {
-          const m = d.data();
+        d.messages.forEach(m => {
           history.push({ id: uid(), role: m.role, text: m.text });
           if (m.role === 'user') addEl('msg-user').textContent = m.text; else addEl('msg-ai', md(m.text));
         });
-        remoteId = id; seq = snap.size; resetBtn.hidden = false;
+        remoteId = d.id; resetBtn.hidden = false;
         closeHistory(); toBottom();
       } catch (e) { toast('Couldn’t open that chat. Please try again.'); }
     }
@@ -2130,7 +2083,7 @@ button{font:inherit;color:inherit}
     function reset() {
       if (ctrl) ctrl.abort();
       history = []; chatId = uid(); inner.innerHTML = ''; empty.hidden = false; resetBtn.hidden = true;
-      remoteId = null; seq = 0; histBox.hidden = true; inner.hidden = false; histBtn.textContent = 'Your chats';
+      remoteId = null; histBox.hidden = true; inner.hidden = false; histBtn.textContent = 'Your chats';
       input.focus();
     }
     form.addEventListener('submit', e => { e.preventDefault(); ask(input.value); });
@@ -2148,19 +2101,18 @@ button{font:inherit;color:inherit}
     return { ask, askFromPage, openHistory };
   })();
 
-  /* ---------- Trip enquiry form (saved to Firestore "enquiries") ---------- */
+  /* ---------- Trip enquiry form (backend: /api/v1/enquiries) ---------- */
   (function enquiry() {
     const form = $('#enquiry');
-    if (!fb.enabled) { form.hidden = true; root.classList.add('no-enquiry'); return; }
+    // Shown once the backend can take enquiries.
+    form.hidden = true; root.classList.add('no-enquiry');
+    afterLoad(() => api.start().then(s => {
+      if (s.state !== 'ready') return;
+      form.hidden = false; root.classList.remove('no-enquiry');
+      if (motion && window.ScrollTrigger) ScrollTrigger.refresh();
+    }));
     const status = $('#enqStatus'), submit = $('#enqSubmit'), select = $('#enqPlace');
-    function fill() {
-      const keep = select.value;
-      select.length = 1;
-      PLACES.forEach(pl => select.add(new Option(`${pl.name}, ${pl.state}`, `${pl.name}, ${pl.state}`)));
-      select.value = keep;
-    }
-    fill();
-    document.addEventListener('hg:places', fill);
+    PLACES.forEach(pl => select.add(new Option(`${pl.name}, ${pl.state}`, `${pl.name}, ${pl.state}`)));
     form.addEventListener('submit', async e => {
       e.preventDefault();
       if ($('#enqWebsite').value) return;
@@ -2174,16 +2126,14 @@ button{font:inherit;color:inherit}
       };
       submit.disabled = true; status.className = 'enq-status'; status.textContent = 'Sending…';
       try {
-        const u = await fb.user(), f = await fb.load();
-        if (!u || !f) throw new Error('Firebase is unavailable');
-        await f.db.collection('enquiries').add({ ...data, uid: u.uid, status: 'new', createdAt: f.FieldValue.serverTimestamp() });
+        await api.call('/enquiries', { method: 'POST', body: data });
         form.reset();
         status.classList.add('ok');
         status.textContent = `Thanks, ${data.name.split(' ')[0]}. Your enquiry is in, and we’ll reply to ${data.email}.`;
       } catch (err) {
         console.info('Enquiry not sent:', err.code || err.message);
         status.classList.add('bad');
-        status.textContent = 'That didn’t send. Check your connection and try again.';
+        status.textContent = err.code === 'too_many' ? 'You’ve sent several enquiries already. Please try again later.' : 'That didn’t send. Check your connection and try again.';
       } finally { submit.disabled = false; }
     });
   })();

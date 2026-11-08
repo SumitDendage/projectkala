@@ -10,13 +10,14 @@ A new frontend for https://storied-otter-d8b50e.netlify.app/. It's an Apple-styl
 | `site/_redirects` | Netlify rule that proxies `/api/chat` to your existing backend |
 | `site/places/*.jpg` | The 9 ring photos, cropped to remove the printed captions |
 | `site/bg-video.mp4`, `site/poster.jpg` | Your hero video, plus a poster frame so the hero isn't black while the video loads |
+| `site/admin/` | The React admin dashboard at `/admin` (generated from `admin/`) |
 | `src/page.html` | The source you edit |
-| `src/admin.html` | The admin page at `/admin`: places, enquiries and saved chats |
-| `firestore.rules` | Firebase security rules (database access control) |
-| `firebase-config.js` | Your Firebase web app config (public by design) |
+| `server/` | The Node.js + Express backend: accounts, visitors, questions, saved places, enquiries |
+| `server/schema.sql` | The database tables (already created in Supabase, schema `hg`) |
+| `admin/` | The React source of the admin dashboard (Vite) |
 | `vendor/`, `fonts/` | Self-hosted libraries and fonts (SIL Open Font License) for the live site, so it never waits on jsDelivr or Google Fonts |
-| `deploy_netlify.py` | Publishes `site/` to storied-otter without breaking the AI chat |
-| `build.py` | Rebuilds `site/index.html` from `src/page.html` |
+| `deploy_netlify.py` | Publishes `site/` and the backend to storied-otter without breaking the AI chat |
+| `build.py` | Builds everything: `site/index.html` from `src/page.html`, the dashboard, and the backend bundle |
 
 ## Deploy
 
@@ -42,8 +43,8 @@ Don't drag `site/` onto storied-otter by hand. That would drop the chat pass-thr
 
 ## Edit
 
-1. Change `src/page.html`.
-2. Run `python3 build.py`.
+1. Change `src/page.html` (the site), `admin/src/` (the dashboard) or `server/src/` (the backend).
+2. Run `python3 build.py` (needs Node.js 18 or newer).
 3. Run `python3 deploy_netlify.py` to update the live site.
 
 To point the chat at a different endpoint, set `window.HIDDEN_GEMS_CHAT_API = "https://…/api/chat"` before the main script. The endpoint must allow CORS if it's on another domain.
@@ -66,50 +67,58 @@ I studied that template's motion and wrote my own versions of it for this site. 
 - **Line-by-line reveals** for section headings and leads.
 - **Letter scramble** on nav links, footer links and button labels when you hover them.
 
-## Database and backend (Firebase)
+## Backend, database and admin dashboard
 
-Firebase replaced Supabase. It powers four things:
+Your own **Node.js + Express** backend replaced Firebase. It runs on the same Netlify site as a serverless function, answering at `/api/v1/*`, and keeps everything in a private **Supabase Postgres** database (schema `hg`, not reachable with Supabase's public keys). The AI chat itself still runs on the Lovable backend.
 
-| Feature | Where it lives | Who can do what (enforced by `firestore.rules`) |
+**What it records:**
+
+| What | Where | Notes |
 |---|---|---|
-| Places in the 3D ring | `places` | Everyone reads published places. Only admins add, edit, hide or delete them. India only, with coordinates inside India. |
-| Visitor accounts | Firebase Authentication (email and password, or Google), `users/{uid}` | Each visitor reads and writes only their own profile and saved places. |
-| Saved chat history | `chats/{id}` and `chats/{id}/messages` | Visitors get a private anonymous account in the background and see only their own chats. Creating an account (email or Google) keeps them. Admins can read all chats. |
-| Trip enquiries | `enquiries` | Anyone can send one (fields and lengths are checked). Only admins can read them or change their status. |
+| Accounts | `hg.users`, `hg.sessions` | Name, email, sign-up date, last sign-in, whether the email is confirmed. Passwords are stored only as scrypt hashes. Sign-in uses an HttpOnly cookie. |
+| Visitors and visits | `hg.visitors`, `hg.visits` | One anonymous id per browser (cookie). Each visit: time, country / region / city (from Netlify, never exact location, no IP stored), device, browser, system, language, where they came from. Reloads within 30 minutes count as one visit. Bots are marked and left out of the numbers. |
+| What they ask (their searches) | `hg.chats`, `hg.chat_messages` | Every question to the AI consultant with its answer. Visitors can reopen their own chats ("Your chats"). |
+| Places viewed and saved | `hg.place_events`, `hg.saved_places` | A view counts once a place stays in front of the 3D ring for 1.5 seconds. Saves need an account. |
+| Trip enquiries | `hg.enquiries` | From the form at the bottom of the site. The first admin gets an email for each new one. |
 
-The AI chat itself still runs on the Lovable backend.
+**Accounts on the site** (the window opens after the loading animation; also Sign in at the top right, or Save on a place):
+- **After loading:** visitors who aren't signed in see the window once per visit: Create account on a new device, Sign in on one that has signed in before. "Continue without an account" closes it, so the site and AI chat stay open to everyone.
+- **Create account:** name, email and a password of at least 8 characters. A confirmation link is emailed; until it's used, the account menu shows a reminder with a resend link.
+- **Sign in** with email and password. Ten wrong tries in 15 minutes pause that email for a while.
+- **Forgot password?** emails a link (valid one hour) that opens the site on "Choose a new password". The answer is the same whether or not the email has an account. Choosing a new password signs out every other device.
+- **Change password** in the account menu emails the same kind of link.
+- Chats from before signing up stay with the new account.
 
-**Accounts (opens after the loading animation; also Sign in at the top right, or Save on a place):**
-- **After loading:** about a second after the intro loader finishes, visitors who aren't signed in see the account window: Create account on a new device, Sign in on a device that has signed in before. It shows once per visit, never to signed-in visitors, and "Continue without an account" closes it so the site and AI chat stay open to everyone.
-- **Create account:** name, email and a password of at least 8 characters. Firebase emails a link to confirm the address; until it's confirmed, the account menu shows a reminder with a resend link.
-- **Sign in:** email and password, or Continue with Google.
-- **Forgot password?:** sends a reset link by email. The message is the same whether or not the email has an account, so nobody can use the form to check who is registered.
-- **Change password:** in the account menu, for email accounts. It emails a reset link.
-- A visitor who chatted before creating an account keeps their saved chats: the anonymous account is upgraded, not replaced.
-- Reset and confirmation emails come from Firebase. To change their wording or sender name: Authentication → Templates.
+**The admin dashboard** is at `https://storied-otter-d8b50e.netlify.app/admin` (React). Sign in with an account whose email is in `ADMIN_EMAILS` and has been confirmed. It shows:
+- **Overview:** visitors, visits in the last 24 hours, accounts, questions, saved places, new enquiries, visits per day, countries, devices, latest questions and most viewed places.
+- **Visitors:** every browser, with location and device; open one to see each visit, every question with its answer, and every place viewed or saved.
+- **Accounts**, **Questions** (searchable, with answers), **Places** and **Enquiries** (mark new, contacted or closed).
 
-**The admin page** is at `https://storied-otter-d8b50e.netlify.app/admin`. Sign in with an email listed in `isAdmin()` in `firestore.rules`, using Google or an email and password (with Forgot password if needed). An email-and-password admin must confirm the address first; the page offers to resend the link. Then you can:
-- manage places, including importing the 9 starter places in one click;
-- read enquiries and mark them new, contacted or closed;
-- read saved chats.
+**Settings (Netlify → Site configuration → Environment variables):**
 
-**Files:**
-- `firebase-config.js`: your project's web config. It's public by design; the rules are what protect the data.
-- `firestore.rules`: the security rules. Paste them into Firebase console → Firestore Database → Rules, then click Publish.
-- `src/admin.html`: the admin page.
+| Variable | What to put | Needed for |
+|---|---|---|
+| `DATABASE_URL` | Supabase → your project → Connect → **Transaction pooler** → URI, with your database password filled in (Supabase → Database settings → reset it if you don't know it) | Everything |
+| `ADMIN_EMAILS` | Your email (several: separate with commas) | The admin dashboard |
+| `BREVO_API_KEY` | Brevo → SMTP & API → API keys → create a key | Password reset, email confirmation, enquiry alerts |
+| `MAIL_FROM` | A sender address verified in Brevo (Senders, domains & dedicated IPs). Optional: defaults to the first `ADMIN_EMAILS` address | Emails |
 
-**If Firebase is ever unreachable:** the page and chat keep working, and the ring uses the same 9 places built into `src/page.html`.
+Mark `DATABASE_URL` and `BREVO_API_KEY` as secret. After adding or changing variables, deploy again (`python3 deploy_netlify.py`) so the backend picks them up. Until `DATABASE_URL` is set, the site still shows the sign-in window after loading, but it answers "Accounts are almost ready", and the enquiry form stays hidden.
 
-**Firebase setup checklist (one time):**
-1. Create the database: Firestore Database → Create database → production mode, region `asia-south1` (Mumbai).
-2. Turn on sign-in: Authentication → Sign-in method → enable **Email/Password**, **Google** and **Anonymous**.
-3. Allow your site: Authentication → Settings → Authorized domains → add `storied-otter-d8b50e.netlify.app`.
-4. Publish the rules: in `firestore.rules`, replace `your-admin-email@example.com` with your admin email address, then go to Firestore Database → Rules → paste the file → Publish.
-5. Connect the site: put your web config in `firebase-config.js`, then run `python3 build.py && python3 deploy_netlify.py`.
-6. Load the places: open `/admin`, sign in, and click "Import the 9 starter places".
+**If the backend is ever unreachable:** the page and AI chat keep working without accounts, saving or the enquiry form.
 
-**Testing on your own computer:** add `emulators: {auth: "http://127.0.0.1:9099", firestore: ["127.0.0.1", 8080]}` to the config in `firebase-config.js` and run `firebase emulators:start --only auth,firestore`. The site then talks only to the local emulators. This setting only works on `localhost`, but remove it before deploying.
+**Run it on your computer:**
 
-**Old Supabase data:** the `hidden_gems_places` table in Supabase is no longer used by the site. It's kept as a backup until you ask for it to be deleted.
+```bash
+cd server && npm install
+```
 
-**Libraries:** Firebase JS SDK 12.19.0 (compat builds, Apache-2.0) is in `vendor/firebase@12.19.0/`.
+```bash
+DATABASE_URL=postgres://… ADMIN_EMAILS=you@example.com COOKIE_SECURE=off npm run dev
+```
+
+Then open http://localhost:8787 (and http://localhost:8787/admin). For a local Postgres, also set `DATABASE_SSL=off`; set `MAIL_LOG=mail.log` to write emails to a file instead of sending them. `server/schema.sql` creates the tables.
+
+**Old data:** Firebase is no longer used (you can delete the `projectkala` Firebase project if you like). The old `hidden_gems_places` table in Supabase isn't used by the site either; it's kept as a backup until you ask for it to be deleted.
+
+**Libraries:** backend: express 4.22.3, pg 8.23.1, serverless-http 3.2.0 (bundled with esbuild 0.28.2). Dashboard: react 19.3.1 and react-dom 19.3.1 (built with vite 8.3.6).

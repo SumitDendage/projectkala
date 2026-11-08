@@ -2,9 +2,12 @@
 """Deploy site/ to storied-otter-d8b50e.netlify.app without breaking the AI chat.
 
 How the live site is wired:
-  * The new design's files are served from /hg/ (index.html, video, poster, photos).
-  * _redirects maps the public paths (/, /places/*, ...) onto /hg/. Netlify checks
-    _redirects before netlify.toml.
+  * The new design's files are served from /hg/ (index.html, video, poster, photos,
+    and the React admin dashboard in /hg/admin/).
+  * The Node.js + Express backend is the Netlify Function "api" (server/dist/api.zip,
+    made by build.py), answering at /api/v1/*.
+  * _redirects maps the public paths (/, /places/*, /admin, /api/v1/*, ...) onto them.
+    Netlify checks _redirects before netlify.toml.
   * Everything else, including the AI chat at /api/chat, falls through to the
     original netlify.toml, which passes requests on to the Lovable app. That file is
     re-used by its fingerprint (ORIGINAL_TOML_SHA), so it never has to be re-uploaded.
@@ -26,6 +29,7 @@ SITE_ID = "e3b21b97-4ed3-4e9b-95f7-f1eb7a5917ae"  # storied-otter-d8b50e
 ORIGINAL_TOML_SHA = "20dc01d2c098a34c7f7b8a138c8e1f55ce21ff20"  # original pass-through to Lovable
 API = "https://api.netlify.com/api/v1"
 ROOT = Path(__file__).resolve().parent / "site"
+FUNCTION_ZIP = Path(__file__).resolve().parent / "server" / "dist" / "api.zip"
 
 REDIRECTS = """# India's Hidden Gems: the new design's files live in /hg.
 # Anything not listed here (including the AI chat at /api/chat) falls through to
@@ -37,8 +41,10 @@ REDIRECTS = """# India's Hidden Gems: the new design's files live in /hg.
 /places/*        /hg/places/:splat   200!
 /vendor/*        /hg/vendor/:splat   200!
 /fonts/*         /hg/fonts/:splat    200!
-/admin               /hg/admin.html          200!
-/firebase-config.js  /hg/firebase-config.js  200!
+/admin           /hg/admin/index.html    200!
+/admin/          /hg/admin/index.html    200!
+/admin/*         /hg/admin/:splat        200!
+/api/v1/*        /.netlify/functions/api/:splat  200!
 """
 
 
@@ -57,8 +63,12 @@ def main() -> None:
             blobs["/hg/" + path.relative_to(ROOT).as_posix()] = path.read_bytes()
     digests = {k: hashlib.sha1(v).hexdigest() for k, v in blobs.items()}
     digests["/netlify.toml"] = ORIGINAL_TOML_SHA
+    if not FUNCTION_ZIP.is_file():
+        sys.exit("server/dist/api.zip is missing: run python3 build.py first.")
+    fn_zip = FUNCTION_ZIP.read_bytes()
+    fn_sha = hashlib.sha256(fn_zip).hexdigest()
 
-    body = json.dumps({"files": digests, "title": "India's Hidden Gems redesign"}).encode()
+    body = json.dumps({"files": digests, "functions": {"api": fn_sha}, "title": "India's Hidden Gems"}).encode()
     deploy = json.loads(curl("-X", "POST", f"{API}/sites/{SITE_ID}/deploys",
                              "-H", "Content-Type: application/json", "--data-binary", "@-", data=body))
     if "id" not in deploy:
@@ -73,6 +83,11 @@ def main() -> None:
                         "-H", "Content-Type: application/octet-stream", "--data-binary", "@-",
                         "-o", "/dev/null", "-w", "%{http_code}", data=content).decode()
             print(f"  {name}: HTTP {code}")
+    if fn_sha in set(deploy.get("required_functions") or []):
+        code = curl("-X", "PUT", f"{API}/deploys/{deploy['id']}/functions/api?runtime=js",
+                    "-H", "Content-Type: application/octet-stream", "--data-binary", "@-",
+                    "-o", "/dev/null", "-w", "%{http_code}", data=fn_zip).decode()
+        print(f"  function api ({len(fn_zip):,} bytes): HTTP {code}")
 
     for _ in range(40):
         state = json.loads(curl(f"{API}/deploys/{deploy['id']}")).get("state")
