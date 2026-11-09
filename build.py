@@ -41,7 +41,7 @@ FONT_FACES = """<link rel="preload" href="fonts/hanken-grotesk-latin-wght-normal
 
 HEAD_EXTRA = f"""<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#07090c">
+<meta name="theme-color" content="#f2f6f4">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{TITLE}">
 <meta property="og:description" content="{DESC}">

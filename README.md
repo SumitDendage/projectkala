@@ -1,6 +1,6 @@
 # India's Hidden Gems
 
-An AI travel consultant for India's quieter places: an Apple-style scrolling site with 3D effects, accounts with email codes, an AI consultant answered by Claude, and a React admin dashboard. It runs as **one Node.js app**, made for **Hostinger**.
+An AI travel consultant for India's quieter places: an Apple-style scrolling site with 3D effects in a light, soft palette, ready-made trip ideas and an FAQ, accounts with email codes, an AI consultant answered by Claude, and a React admin dashboard. It runs as **one Node.js app**, made for **Hostinger**.
 
 ## Files
 
@@ -46,7 +46,7 @@ After changing a variable, restart the app in hPanel. Hostinger gives the app it
 
 ## Edit
 
-1. Change `src/page.html` (the site), `admin/src/` (the dashboard) or `server/src/` (the backend).
+1. Change `src/page.html` (the site), `admin/src/` (the dashboard) or `server/src/` (the backend). Trip ideas are the `#trips` section of `src/page.html`; FAQ answers are the `#faq` section, and its `application/ld+json` block must say the same thing.
 2. Run `python3 build.py` (needs Node.js 18 or newer) if you changed the site or the dashboard.
 3. Commit and push to `main`; redeploy the app in hPanel (or turn on automatic deploys there).
 
@@ -109,7 +109,10 @@ The same page also runs on claude.ai: https://claude.ai/artifact/DQeCi7JuR84A7sQ
 
 ## What changed from the original
 
-- **Structure.** The site was one fixed screen. It's now seven sections, each with one job: hero, why it exists, places, how it works, when to go, the consultant, and travel well. A sticky nav changes colour to match the section under it and shows scroll progress.
+- **Structure.** The site was one fixed screen. It's now nine sections, each with one job: hero, why it exists, places, trip ideas, how it works, when to go, the consultant, travel well, and questions. A sticky nav changes colour to match the section under it and shows scroll progress.
+- **Colours.** A light, soft palette: misty sage and white bands, deep green-ink text, a saffron accent and teal lines on the 3D terrain and footer. Only the hero keeps its dark film, with light text. Every text colour passes WCAG AA contrast (4.5:1).
+- **Trip ideas.** Four ready-made routes (Meghalaya, Spiti, Tawang and Kerala), each with the best months, a rough daily budget, the effort, permits where needed and a day-by-day plan. "Plan this trip" asks the consultant; "Send an enquiry" fills in the enquiry form. Below them, a short "Before you go" checklist. Budgets are labelled as estimates.
+- **Questions.** An FAQ on cost, accuracy, permits, seasons, the monsoon, accounts, enquiries and data, with matching FAQPage structured data for search engines. Answers about accounts, enquiries and data are hidden on the Claude version, where they don't apply.
 - **3D and motion.** The hero video shrinks and tilts back into a card as you scroll. A live Three.js ridge-line terrain flies under the statement while its words light up. Places is a pinned 3D ring (below). A 3D device turns as the "How it works" steps change it. The chat panel swings up from a tilted plane. Smooth scrolling uses Lenis, choreography uses GSAP ScrollTrigger.
 - **Chat.** Stop, New chat and Try again, and markdown that's sanitised before it renders. Suggestion chips, place cards and calendar months all start a conversation.
 - **Fixes.** One `<h1>` instead of two, real meta and Open Graph tags, a labelled textarea and send button, a skip link, a pause control for the video, `prefers-reduced-motion` support (static layout, video paused) and no horizontal scroll on phones.
@@ -122,6 +125,7 @@ I studied that template's motion and wrote my own versions of it for this site. 
 - **Intro loader.** Place covers orbit a 0 to 100 counter, then vertical blinds open onto the hero. It plays once per browser tab session and is skipped when reduced motion is on.
 - **Masked headline.** The hero headline rises out of a mask when the loader lifts.
 - **Line-by-line reveals** for section headings and leads.
+- **Rise-in cards.** Trip ideas, the checklist and the FAQ answers fade up as they come into view (a small separate script, so the scroll film above is unchanged), and plans and answers open smoothly.
 - **Letter scramble** on nav links, footer links and button labels when you hover them.
 
 ## Libraries

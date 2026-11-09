@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#07090c">
+<meta name="theme-color" content="#f2f6f4">
 <meta property="og:type" content="website">
 <meta property="og:title" content="India's Hidden Gems · AI Travel Consultant">
 <meta property="og:description" content="An AI travel consultant for India's unexplored places: Himalayan villages, Konkan coves, North East tribal trails and monsoon escapes.">
@@ -29,30 +29,37 @@
 /* Layout: an Apple-style scroll film. Sticky cinematic stages (video, 3D terrain, device) alternate
    with light editorial bands; every section sits on one 1180px column with a shared left edge. */
 :root{
-  color-scheme:dark;
-  --night:#07090c;
-  --night-2:#10151b;
-  --night-3:#18202a;
-  --night-line:rgba(233,240,244,.12);
-  --paper:#f2f5f7;
-  --paper-2:#cfd6dc;
-  --fog:#98a3ad;
-  --snow:#f1f3f2;
-  --snow-2:#ffffff;
-  --snow-line:rgba(12,16,20,.12);
-  --ink:#0c1014;
-  --ink-2:#4b545d;
-  --marigold:#f5a524;
-  --marigold-hi:#ffb94a;
-  --marigold-ink:#8f5100;
+  color-scheme:light;
+  /* Light, soft palette: misty sage bands, white cards, deep green-ink text, saffron accent.
+     The "night" tokens are the mist bands, "snow" the white bands (names kept from the first design). */
+  --night:#F2F6F4;
+  --night-2:#FFFFFF;
+  --night-3:#E4ECE8;
+  --night-line:rgba(19,34,30,.11);
+  --paper:#13221E;
+  --paper-2:#3B4B46;
+  --fog:#5C6C66;
+  --snow:#FFFFFF;
+  --snow-2:#F4F7F5;
+  --snow-line:rgba(19,34,30,.11);
+  --ink:#13221E;
+  --ink-2:#4A5A54;
+  --marigold:#EE9B2F;
+  --marigold-hi:#F5AD4A;
+  --marigold-ink:#9A5A0B;
+  --on-accent:#1A1306;
+  --accent-text:#9A5A0B;
+  --wash:19,34,30;
+  --sea:#2C6A64;
   --glacier:#93c6d8;
   --slate:#58788c;
   --laterite:#b2532c;
   --paddy:#4f7d3a;
   --rain:#2e6e74;
-  --glass-dark:rgba(9,12,16,.66);
-  --glass-light:rgba(241,243,242,.78);
-  --danger:#ff8a6b;
+  --glass-dark:rgba(17,31,27,.9);
+  --glass-light:rgba(255,255,255,.78);
+  --danger:#B83F27;
+  --ok:#1F7A4C;
 
   --font-sans:"Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif:"Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
@@ -66,6 +73,9 @@
   --nav-band:var(--glass-dark);
 }
 :root[data-nav-tone="light"]{--nav-band:var(--glass-light)}
+.hero,.nav[data-tone="dark"]{--paper:#F3F6F4;--paper-2:#DCE4E0;--fog:#B9C5C0;--wash:243,246,244;--night-line:rgba(243,246,244,.16);--accent-text:#F2A33A}
+.hero{color:var(--paper)}
+.account-menu{--paper:#13221E;--paper-2:#3B4B46;--fog:#5C6C66;--wash:19,34,30;--night-line:rgba(19,34,30,.11);--accent-text:#9A5A0B}
 
 /* ---------- Base ---------- */
 *,*::before,*::after{box-sizing:border-box}
@@ -84,9 +94,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 img,video,canvas{max-width:100%}
 a{color:inherit}
 button{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--marigold);outline-offset:3px;border-radius:6px}
+:focus-visible{outline:2px solid var(--accent-text);outline-offset:3px;border-radius:6px}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-.skip{position:fixed;left:max(16px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 8px);z-index:100;padding:10px 16px;border-radius:999px;background:var(--marigold);color:var(--night);font-weight:600;text-decoration:none;transform:translateY(-200%);transition:transform .2s}
+.skip{position:fixed;left:max(16px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 8px);z-index:100;padding:10px 16px;border-radius:999px;background:var(--marigold);color:var(--on-accent);font-weight:600;text-decoration:none;transform:translateY(-200%);transition:transform .2s}
 .skip:focus{transform:none}
 
 .wrap{
@@ -99,7 +109,7 @@ button{font:inherit;color:inherit}
 .section{padding-block:clamp(96px,13vw,176px)}
 
 /* ---------- Type ---------- */
-.eyebrow{display:inline-flex;align-items:center;gap:.65em;margin:0;font:500 12.5px/1.2 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--marigold)}
+.eyebrow{display:inline-flex;align-items:center;gap:.65em;margin:0;font:500 12.5px/1.2 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text)}
 .band-light .eyebrow{color:var(--marigold-ink)}
 .h-display{margin:0;font-weight:720;font-size:clamp(3.1rem,9.4vw,8.5rem);line-height:.9;letter-spacing:-.05em;text-wrap:balance}
 .h2{margin:0;font-weight:700;font-size:clamp(2.35rem,5.6vw,4.75rem);line-height:.98;letter-spacing:-.042em;text-wrap:balance}
@@ -120,10 +130,10 @@ button{font:inherit;color:inherit}
   transition:transform .25s var(--ease),background-color .2s,border-color .2s,color .2s;
 }
 .btn:active{transform:scale(.97)}
-.btn-accent{background:var(--marigold);color:var(--night)}
+.btn-accent{background:var(--marigold);color:var(--on-accent)}
 .btn-accent:hover{background:var(--marigold-hi)}
-.btn-ghost{background:rgba(242,245,247,.08);border-color:rgba(242,245,247,.24);color:var(--paper);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
-.btn-ghost:hover{background:rgba(242,245,247,.16)}
+.btn-ghost{background:rgba(var(--wash),.08);border-color:rgba(var(--wash),.24);color:var(--paper);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.btn-ghost:hover{background:rgba(var(--wash),.16)}
 .btn-sm{height:34px;padding:0 15px;font-size:14px}
 .btn .arrow{transition:transform .25s var(--ease)}
 .btn:hover .arrow{transform:translateX(3px)}
@@ -133,7 +143,7 @@ button{font:inherit;color:inherit}
 .nav::before{content:"";position:absolute;inset:0;background:var(--glass-dark);-webkit-backdrop-filter:saturate(170%) blur(20px);backdrop-filter:saturate(170%) blur(20px);opacity:1;transition:opacity .35s,background-color .35s;z-index:-1}
 .nav.is-top::before{opacity:0}
 .nav.is-top{border-bottom-color:transparent}
-.nav[data-tone="dark"]{border-bottom-color:rgba(242,245,247,.08)}
+.nav[data-tone="dark"]{border-bottom-color:rgba(var(--wash),.08)}
 .nav[data-tone="light"]{color:var(--ink);border-bottom-color:rgba(12,16,20,.08)}
 .nav[data-tone="light"]::before{background:var(--glass-light)}
 .nav-inner{height:var(--nav-h);display:flex;align-items:center;gap:24px}
@@ -167,7 +177,7 @@ button{font:inherit;color:inherit}
 .hero-cta{display:flex;flex-wrap:wrap;gap:12px}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--marigold);box-shadow:0 0 0 4px rgba(245,165,36,.18);flex:none}
 .hero-side{display:flex;gap:14px;align-items:center}
-.video-toggle{display:inline-flex;align-items:center;gap:10px;height:40px;padding:0 14px 0 12px;border-radius:999px;border:1px solid rgba(242,245,247,.22);background:rgba(7,9,12,.35);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);font:500 12px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.video-toggle{display:inline-flex;align-items:center;gap:10px;height:40px;padding:0 14px 0 12px;border-radius:999px;border:1px solid rgba(var(--wash),.22);background:rgba(7,9,12,.35);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);font:500 12px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
 .video-toggle svg{width:14px;height:14px}
 .scroll-cue{display:none;align-items:center;gap:10px;font:500 12px/1 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--fog)}
 .scroll-cue i{display:block;width:1px;height:36px;background:linear-gradient(var(--paper),transparent);transform-origin:top;animation:cue 2.2s var(--ease) infinite}
@@ -176,13 +186,13 @@ button{font:inherit;color:inherit}
 
 /* ---------- Statement over 3D terrain ---------- */
 .statement{position:relative;background:var(--night)}
-.statement-stage{position:relative;min-height:100svh;display:flex;align-items:center;overflow:hidden;background:radial-gradient(120% 70% at 50% 0%,#132233 0%,#0a1018 45%,var(--night) 75%)}
+.statement-stage{position:relative;min-height:100svh;display:flex;align-items:center;overflow:hidden;background:radial-gradient(120% 70% at 50% 0%,#FFFFFF 0%,#F6F9F7 45%,var(--night) 75%)}
 #terrain{position:absolute;inset:0;width:100%;height:100%;display:block}
-.statement-veil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(7,9,12,.72) 0%,rgba(7,9,12,.2) 50%,rgba(7,9,12,0) 75%),linear-gradient(0deg,var(--night) 0%,rgba(7,9,12,0) 18%)}
+.statement-veil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(242,246,244,.88) 0%,rgba(242,246,244,.4) 50%,rgba(242,246,244,0) 75%),linear-gradient(0deg,var(--night) 0%,rgba(242,246,244,0) 18%)}
 .statement-copy{position:relative;z-index:1;display:grid;gap:28px;padding-block:120px}
 .statement-text{margin:0;max-width:17em;font-weight:680;font-size:clamp(2rem,4.9vw,4.1rem);line-height:1.08;letter-spacing:-.035em;text-wrap:balance}
 .statement-text .w{transition:opacity .25s linear}
-.statement-text .hl{color:var(--marigold)}
+.statement-text .hl{color:var(--accent-text)}
 .footnote{margin:0;font:400 13px/1.5 var(--font-mono);color:var(--fog);letter-spacing:.02em}
 .footnote b{font-weight:500;color:var(--paper-2);font-variant-numeric:tabular-nums}
 
@@ -213,7 +223,7 @@ button{font:inherit;color:inherit}
 .ring-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-top:12px}
 @media (min-width:760px){#rdCount{display:none}}
 .btn-dark{background:var(--ink);color:var(--snow)}
-.btn-dark:hover{background:#262c33}
+.btn-dark:hover{background:#24362F}
 .ring-steps{display:inline-flex;align-items:center;gap:8px;font:500 12px/1 var(--font-mono);letter-spacing:.08em;color:var(--ink-2);font-variant-numeric:tabular-nums}
 .ring-steps button{width:36px;height:36px;border-radius:50%;border:1px solid var(--snow-line);background:var(--snow-2);display:grid;place-items:center;cursor:pointer;color:var(--ink);transition:border-color .2s}
 .ring-steps button:hover{border-color:var(--ink)}
@@ -232,8 +242,8 @@ button{font:inherit;color:inherit}
 @media (max-width:759px){
   .ring-head .h2{font-size:clamp(1.9rem,8vw,2.4rem)}
   .ring-head .lead,.ring-desc,.dial,.ring-meta{display:none}
-  .ring-head{gap:10px;padding:14px 16px;border-radius:22px;background:rgba(241,243,242,.76);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}
-  .ring-detail{max-width:none;padding:16px;border-radius:22px;background:rgba(241,243,242,.76);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 20px 40px -24px rgba(12,16,20,.35)}
+  .ring-head{gap:10px;padding:14px 16px;border-radius:22px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px)}
+  .ring-detail{max-width:none;padding:16px;border-radius:22px;background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 20px 40px -24px rgba(12,16,20,.35)}
   .ring-name{font-size:2.4rem}
 }
 
@@ -260,7 +270,7 @@ button{font:inherit;color:inherit}
 .how-grid{display:grid;gap:72px;margin-top:72px}
 .steps{list-style:none;margin:0;padding:0;display:grid;gap:80px}
 .step{display:grid;gap:18px}
-.step-num{margin:0;font:500 12.5px/1.2 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--marigold);font-variant-numeric:tabular-nums}
+.step-num{margin:0;font:500 12.5px/1.2 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text);font-variant-numeric:tabular-nums}
 .step h3{margin:0;font-weight:680;font-size:clamp(1.8rem,3.2vw,2.6rem);line-height:1.04;letter-spacing:-.035em;text-wrap:balance}
 .step p.step-text{margin:0;max-width:30em;color:var(--fog);font-size:17.5px}
 .step-screen{margin-top:10px}
@@ -281,22 +291,22 @@ button{font:inherit;color:inherit}
 .device-sticky{position:sticky;top:calc(50svh - 300px + var(--nav-h) / 2);height:600px;display:grid;place-items:center;perspective:1500px}
 .device{
   position:relative;width:min(100%,420px);height:560px;border-radius:40px;padding:12px;
-  background:linear-gradient(160deg,#2a3440 0%,#121820 40%,#0b0f14 100%);
-  box-shadow:0 0 0 1px rgba(242,245,247,.14) inset,0 2px 0 rgba(255,255,255,.12) inset,0 70px 120px -50px rgba(0,0,0,.9),0 30px 60px -30px rgba(245,165,36,.18);
+  background:linear-gradient(160deg,#FFFFFF 0%,#EEF3F0 45%,#DCE5E0 100%);
+  box-shadow:0 0 0 1px rgba(19,34,30,.10) inset,0 2px 0 rgba(255,255,255,.9) inset,0 70px 120px -50px rgba(19,34,30,.34),0 30px 60px -30px rgba(238,155,47,.22);
   transform:rotateY(-16deg) rotateX(7deg);transform-style:preserve-3d;will-change:transform;
 }
-.device-screen{position:relative;height:100%;border-radius:30px;overflow:hidden;background:linear-gradient(180deg,#0f141a,#0a0e12)}
+.device-screen{position:relative;height:100%;border-radius:30px;overflow:hidden;background:linear-gradient(180deg,#FFFFFF,#F5F8F6)}
 .device-bar{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--night-line);font-size:14px;font-weight:600}
-.device-bar .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--marigold);color:var(--night)}
+.device-bar .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--marigold);color:var(--on-accent)}
 .device-bar .av svg{width:18px;height:18px}
 .device-bar small{display:block;font:400 11px/1.2 var(--font-mono);letter-spacing:.06em;color:var(--fog)}
 .device-screens{position:absolute;inset:63px 0 0}
 .device-screens .screen{position:absolute;inset:0;padding:20px 18px;opacity:0;transform:translateY(18px) scale(.98);transition:opacity .5s var(--ease),transform .6s var(--ease)}
 .device-screens .screen.is-active{opacity:1;transform:none}
-.device-shadow{position:absolute;left:12%;right:12%;bottom:-14px;height:40px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.65),transparent);filter:blur(8px);z-index:-1}
+.device-shadow{position:absolute;left:12%;right:12%;bottom:-14px;height:40px;border-radius:50%;background:radial-gradient(closest-side,rgba(19,34,30,.28),transparent);filter:blur(8px);z-index:-1}
 .device-caption{margin:18px 0 0;text-align:center;font:400 12px/1.4 var(--font-mono);letter-spacing:.06em;color:var(--fog)}
 .screen{display:flex;flex-direction:column;gap:14px;font-size:14.5px;line-height:1.5}
-.bubble{max-width:86%;padding:11px 15px;border-radius:20px 20px 6px 20px;background:var(--marigold);color:var(--night);align-self:flex-end}
+.bubble{max-width:86%;padding:11px 15px;border-radius:20px 20px 6px 20px;background:var(--marigold);color:var(--on-accent);align-self:flex-end}
 .bubble.small{font-size:13px;opacity:.8}
 .ai-snippet{display:grid;gap:10px;color:var(--paper-2)}
 .ai-snippet p{margin:0}
@@ -305,7 +315,7 @@ button{font:inherit;color:inherit}
 .essentials{margin:0;display:grid;gap:0}
 .essentials div{display:grid;grid-template-columns:84px minmax(0,1fr);gap:12px;padding:12px 0;border-top:1px solid var(--night-line)}
 .essentials div:first-child{border-top:0;padding-top:2px}
-.essentials dt{font:500 10.5px/1.6 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--marigold)}
+.essentials dt{font:500 10.5px/1.6 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-text)}
 .essentials dd{margin:0;color:var(--paper-2)}
 .typing{display:inline-flex;gap:5px;padding:13px 16px;border-radius:20px 20px 20px 6px;background:var(--night-3);align-self:flex-start}
 .typing span{width:7px;height:7px;border-radius:50%;background:var(--fog);animation:blink 1.2s infinite ease-in-out}
@@ -343,27 +353,27 @@ button{font:inherit;color:inherit}
 /* ---------- Consultant ---------- */
 .consult{position:relative;overflow:hidden}
 .consult::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
-  background:repeating-radial-gradient(ellipse at 85% 110%,rgba(147,198,216,0) 0 38px,rgba(147,198,216,.07) 38px 39px)}
-.consult::after{content:"";position:absolute;left:50%;top:58%;width:900px;height:600px;transform:translate(-50%,-50%);pointer-events:none;background:radial-gradient(closest-side,rgba(245,165,36,.12),transparent)}
+  background:repeating-radial-gradient(ellipse at 85% 110%,rgba(44,106,100,0) 0 38px,rgba(44,106,100,.07) 38px 39px)}
+.consult::after{content:"";position:absolute;left:50%;top:58%;width:900px;height:600px;transform:translate(-50%,-50%);pointer-events:none;background:radial-gradient(closest-side,rgba(238,155,47,.13),transparent)}
 .consult .wrap{position:relative;z-index:1}
 .chat-stage{margin-top:56px;perspective:1800px}
 .chat{
   position:relative;display:flex;flex-direction:column;height:min(78svh,780px);min-height:540px;
-  border-radius:34px;background:rgba(16,21,27,.82);border:1px solid rgba(242,245,247,.12);
+  border-radius:34px;background:rgba(255,255,255,.9);border:1px solid var(--night-line);
   -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
-  box-shadow:0 1px 0 rgba(255,255,255,.07) inset,0 80px 140px -60px rgba(0,0,0,.9);
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 1px 2px rgba(19,34,30,.04),0 80px 140px -70px rgba(19,34,30,.3);
   transform-origin:50% 100%;overflow:hidden;
 }
 .chat-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 22px;border-bottom:1px solid var(--night-line)}
 .chat-id{display:flex;align-items:center;gap:12px;min-width:0}
-.chat-av{position:relative;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--marigold);color:var(--night);flex:none}
+.chat-av{position:relative;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--marigold);color:var(--on-accent);flex:none}
 .chat-av svg{width:24px;height:24px}
 .chat-name{margin:0;font-weight:650;font-size:15.5px;letter-spacing:-.01em}
 .chat-status{margin:2px 0 0;display:flex;align-items:center;gap:7px;font:400 12px/1.2 var(--font-mono);letter-spacing:.04em;color:var(--fog)}
 .chat-status .live{width:7px;height:7px;border-radius:50%;background:#53d48b;box-shadow:0 0 0 3px rgba(83,212,139,.18)}
 .chat-status.busy .live{background:var(--marigold);box-shadow:0 0 0 3px rgba(245,165,36,.2)}
 .btn-text{height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--night-line);background:transparent;font-size:13.5px;font-weight:550;cursor:pointer;color:var(--paper-2)}
-.btn-text:hover{background:rgba(242,245,247,.07);color:var(--paper)}
+.btn-text:hover{background:rgba(var(--wash),.07);color:var(--paper)}
 .chat-log{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:32px 22px}
 .chat-inner{max-width:760px;margin-inline:auto;display:flex;flex-direction:column;gap:22px}
 .chat-empty{min-height:100%;max-width:760px;margin-inline:auto;display:flex;flex-direction:column;justify-content:center;gap:18px}
@@ -371,12 +381,12 @@ button{font:inherit;color:inherit}
 .chat-empty p{margin:0;color:var(--fog)}
 .chips{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
 @media (min-width:640px){.chips{grid-template-columns:1fr 1fr}}
-.chip{display:flex;align-items:center;gap:12px;min-height:56px;padding:12px 16px;border-radius:16px;border:1px solid var(--night-line);background:rgba(242,245,247,.04);text-align:left;font-size:15px;cursor:pointer;transition:background-color .2s,border-color .2s,transform .25s var(--ease)}
-.chip svg{width:20px;height:20px;flex:none;color:var(--marigold)}
-.chip:hover{background:rgba(242,245,247,.08);border-color:rgba(245,165,36,.45);transform:translateY(-2px)}
+.chip{display:flex;align-items:center;gap:12px;min-height:56px;padding:12px 16px;border-radius:16px;border:1px solid var(--night-line);background:rgba(var(--wash),.04);text-align:left;font-size:15px;cursor:pointer;transition:background-color .2s,border-color .2s,transform .25s var(--ease)}
+.chip svg{width:20px;height:20px;flex:none;color:var(--accent-text)}
+.chip:hover{background:#fff;border-color:rgba(238,155,47,.55);transform:translateY(-2px)}
 .msg{max-width:100%;animation:msgIn .45s var(--ease) both}
 @keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.msg-user{align-self:flex-end;max-width:min(80%,560px);padding:12px 17px;border-radius:22px 22px 6px 22px;background:var(--marigold);color:var(--night);white-space:pre-wrap;overflow-wrap:anywhere}
+.msg-user{align-self:flex-end;max-width:min(80%,560px);padding:12px 17px;border-radius:22px 22px 6px 22px;background:var(--marigold);color:var(--on-accent);white-space:pre-wrap;overflow-wrap:anywhere}
 .msg-ai{align-self:stretch;color:var(--paper-2);font-size:16.5px;line-height:1.65;overflow-wrap:anywhere}
 .msg-ai>*:first-child{margin-top:0}
 .msg-ai>*:last-child{margin-bottom:0}
@@ -385,24 +395,24 @@ button{font:inherit;color:inherit}
 .msg-ai p{margin:.7em 0}
 .msg-ai ul,.msg-ai ol{margin:.6em 0;padding-left:1.3em}
 .msg-ai li{margin:.35em 0}
-.msg-ai li::marker{color:var(--marigold)}
+.msg-ai li::marker{color:var(--accent-text)}
 .msg-ai strong{color:var(--paper);font-weight:650}
 .msg-ai em{font-family:var(--font-serif);font-size:1.06em}
-.msg-ai a{color:var(--marigold);text-underline-offset:3px}
+.msg-ai a{color:var(--accent-text);text-underline-offset:3px}
 .msg-ai hr{border:0;border-top:1px solid var(--night-line);margin:1.4em 0}
 .msg-ai code{font-family:var(--font-mono);font-size:.88em;background:var(--night-3);padding:.1em .35em;border-radius:6px}
 .msg-ai blockquote{margin:.8em 0;padding-left:14px;border-left:2px solid var(--marigold);color:var(--paper)}
 .msg-ai table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;font-size:.92em}
 .msg-ai th,.msg-ai td{border-bottom:1px solid var(--night-line);padding:8px 10px;text-align:left}
 .msg-note{margin:10px 0 0;font:400 12px/1.4 var(--font-mono);letter-spacing:.04em;color:var(--fog)}
-.msg-error{align-self:stretch;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:16px;border:1px solid rgba(255,138,107,.4);background:rgba(255,138,107,.08);color:var(--paper);font-size:15px}
+.msg-error{align-self:stretch;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:16px;border:1px solid rgba(184,63,39,.32);background:rgba(184,63,39,.06);color:var(--paper);font-size:15px}
 .msg-error p{margin:0}
 .chat-form{padding:14px 22px 18px;border-top:1px solid var(--night-line)}
-.composer{max-width:760px;margin-inline:auto;display:flex;align-items:flex-end;gap:8px;padding:7px 7px 7px 16px;border-radius:24px;border:1px solid rgba(242,245,247,.16);background:rgba(242,245,247,.05);transition:border-color .2s,background-color .2s}
-.composer:focus-within{border-color:rgba(245,165,36,.6);background:rgba(242,245,247,.08)}
+.composer{max-width:760px;margin-inline:auto;display:flex;align-items:flex-end;gap:8px;padding:7px 7px 7px 16px;border-radius:24px;border:1px solid rgba(var(--wash),.16);background:rgba(var(--wash),.05);transition:border-color .2s,background-color .2s}
+.composer:focus-within{border-color:rgba(245,165,36,.6);background:rgba(var(--wash),.08)}
 .composer textarea{flex:1;min-width:0;max-height:160px;resize:none;border:0;outline:0;background:transparent;padding:10px 0;font:400 16px/1.5 var(--font-sans);color:var(--paper)}
 .composer textarea::placeholder{color:var(--fog)}
-.send{flex:none;width:42px;height:42px;border-radius:50%;border:0;display:grid;place-items:center;background:var(--marigold);color:var(--night);cursor:pointer;transition:transform .2s var(--ease),opacity .2s,background-color .2s}
+.send{flex:none;width:42px;height:42px;border-radius:50%;border:0;display:grid;place-items:center;background:var(--marigold);color:var(--on-accent);cursor:pointer;transition:transform .2s var(--ease),opacity .2s,background-color .2s}
 .send:hover{background:var(--marigold-hi)}
 .send:disabled{opacity:.35;cursor:not-allowed}
 .send svg{width:20px;height:20px}
@@ -431,7 +441,7 @@ button{font:inherit;color:inherit}
 .foot-ridge{position:absolute;left:0;right:0;bottom:0;height:46%;pointer-events:none;opacity:.55}
 
 /* ---------- Professional polish: layout and styling only, motion unchanged ---------- */
-::selection{background:var(--marigold);color:var(--night)}
+::selection{background:var(--marigold);color:var(--on-accent)}
 :root{--nav-h:60px}
 .section{padding-block:clamp(96px,11vw,152px)}
 
@@ -443,6 +453,8 @@ button{font:inherit;color:inherit}
 .nav-links a.is-current::after{content:"";position:absolute;left:50%;bottom:0;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--marigold)}
 .nav[data-tone="light"] .nav-links a.is-current::after{background:var(--marigold-ink)}
 .nav .btn-sm{height:38px;padding:0 18px}
+.nav-links a{white-space:nowrap}
+@media (max-width:1099px){.nav-links .nav-more{display:none}}
 @media (min-width:820px){.nav .btn{margin-left:14px}}
 
 /* Section labels and headings: one consistent system */
@@ -460,7 +472,7 @@ button{font:inherit;color:inherit}
 .well-item svg{width:46px;height:46px;padding:11px;border-radius:14px;background:var(--snow-2);border:1px solid var(--snow-line);box-shadow:0 1px 2px rgba(12,16,20,.06)}
 
 /* Footer: brand, link columns, notes and a bottom bar */
-.foot-ridge{top:0;bottom:auto;height:clamp(260px,38vw,460px);opacity:.45}
+.foot-ridge{top:0;bottom:auto;height:clamp(260px,38vw,460px);opacity:.8}
 .foot-cta{padding-block:clamp(110px,14vw,190px) clamp(64px,8vw,104px)}
 .foot-grid{display:grid;gap:40px 32px;padding-block:56px;border-top:1px solid var(--night-line)}
 @media (min-width:600px){.foot-grid{grid-template-columns:1fr 1fr}.foot-brand{grid-column:1/-1}}
@@ -482,12 +494,12 @@ button{font:inherit;color:inherit}
 .account-btn:hover{background:rgba(128,128,128,.14)}
 .account-av{width:26px;height:26px;flex:none;border-radius:50%;display:grid;place-items:center;background:rgba(128,128,128,.2) center/cover no-repeat;font-size:12px;font-weight:650}
 .account-av svg{width:16px;height:16px}
-.account-menu{position:absolute;right:0;top:calc(100% + 10px);z-index:70;width:290px;padding:8px;border-radius:18px;background:var(--night-2);color:var(--paper);border:1px solid var(--night-line);box-shadow:0 30px 60px -20px rgba(0,0,0,.6)}
+.account-menu{position:absolute;right:0;top:calc(100% + 10px);z-index:70;width:290px;padding:8px;border-radius:18px;background:var(--night-2);color:var(--paper);border:1px solid var(--night-line);box-shadow:0 30px 60px -20px rgba(19,34,30,.28)}
 .account-who{margin:8px 10px 4px;font-size:13px;color:var(--fog);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .account-h{margin:12px 10px 6px;font:500 10.5px/1.2 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--fog)}
 .account-saved{list-style:none;margin:0;padding:0;display:grid;gap:2px;max-height:240px;overflow:auto}
 .account-saved button,.account-item{display:block;width:100%;padding:9px 10px;border:0;border-radius:10px;background:transparent;color:var(--paper);text-align:left;font:500 14.5px/1.3 var(--font-sans);cursor:pointer}
-.account-saved button:hover,.account-item:hover{background:rgba(242,245,247,.08)}
+.account-saved button:hover,.account-item:hover{background:rgba(var(--wash),.08)}
 .account-saved small{display:block;margin-top:2px;color:var(--fog);font-size:12px;font-weight:400}
 .account-empty{padding:4px 10px 8px;color:var(--fog);font-size:13px;line-height:1.45}
 .account-actions{margin-top:8px;padding-top:8px;border-top:1px solid var(--night-line);display:grid;gap:2px}
@@ -501,8 +513,8 @@ button{font:inherit;color:inherit}
 .chat-head-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .chat-history{max-width:760px;margin-inline:auto;display:grid;gap:8px}
 .hist-head h3{margin:0 0 8px;font-weight:700;font-size:clamp(1.4rem,2.4vw,1.8rem);letter-spacing:-.03em}
-.hist-row{display:grid;gap:3px;width:100%;padding:14px 16px;border-radius:14px;border:1px solid var(--night-line);background:rgba(242,245,247,.04);color:var(--paper);text-align:left;font:inherit;cursor:pointer;transition:background-color .2s,border-color .2s}
-.hist-row:hover{border-color:rgba(245,165,36,.45);background:rgba(242,245,247,.07)}
+.hist-row{display:grid;gap:3px;width:100%;padding:14px 16px;border-radius:14px;border:1px solid var(--night-line);background:rgba(var(--wash),.04);color:var(--paper);text-align:left;font:inherit;cursor:pointer;transition:background-color .2s,border-color .2s}
+.hist-row:hover{border-color:rgba(245,165,36,.45);background:rgba(var(--wash),.07)}
 .hist-row strong{font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hist-row small{color:var(--fog);font-size:12.5px}
 .hist-note{margin:0;color:var(--fog)}
@@ -511,36 +523,36 @@ button{font:inherit;color:inherit}
 @media (min-width:1000px){.foot-cta{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:center}.no-enquiry .foot-cta{grid-template-columns:minmax(0,1fr)}}
 .foot-cta-copy{display:grid;gap:28px;justify-items:start;align-content:center}
 .foot-cta-lead{margin:0;max-width:30em;color:var(--fog);font-size:clamp(1.0625rem,1.4vw,1.25rem);line-height:1.5}
-.enquiry{position:relative;display:grid;gap:18px;padding:clamp(22px,3vw,32px);border-radius:28px;background:rgba(16,21,27,.84);border:1px solid var(--night-line);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 40px 80px -40px rgba(0,0,0,.8)}
+.enquiry{position:relative;display:grid;gap:18px;padding:clamp(22px,3vw,32px);border-radius:28px;background:rgba(255,255,255,.92);border:1px solid var(--night-line);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 40px 80px -46px rgba(19,34,30,.3)}
 .enquiry h3{margin:0;font-weight:700;font-size:24px;letter-spacing:-.025em}
 .enquiry>p{margin:-8px 0 0;color:var(--fog);font-size:14.5px}
 .enq-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .field{display:grid;gap:7px;min-width:0}
 .field.full{grid-column:1/-1}
 .field span{font:500 11px/1.2 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--fog)}
-.field input,.field select,.field textarea{width:100%;min-width:0;padding:12px 14px;border-radius:14px;border:1px solid rgba(242,245,247,.16);background:rgba(242,245,247,.05);color:var(--paper);font:400 15.5px/1.4 var(--font-sans);transition:border-color .2s,background-color .2s}
+.field input,.field select,.field textarea{width:100%;min-width:0;padding:12px 14px;border-radius:14px;border:1px solid rgba(var(--wash),.16);background:rgba(var(--wash),.05);color:var(--paper);font:400 15.5px/1.4 var(--font-sans);transition:border-color .2s,background-color .2s}
 .field textarea{resize:vertical;min-height:112px}
-.field select{appearance:none;padding-right:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2398a3ad' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-size:16px}
+.field select{appearance:none;padding-right:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%235C6C66' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-size:16px}
 .field select option{color:#0c1014}
-.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:rgba(245,165,36,.7);background-color:rgba(242,245,247,.08)}
-.field input::placeholder,.field textarea::placeholder{color:rgba(152,163,173,.75)}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:rgba(238,155,47,.8);background-color:#fff}
+.field input::placeholder,.field textarea::placeholder{color:rgba(92,108,102,.78)}
 .hp{position:absolute!important;left:-9999px;width:1px;height:1px;overflow:hidden}
 .enq-foot{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px}
 .enq-status{margin:0;font-size:14.5px;color:var(--fog)}
-.enq-status.ok{color:#7fd6a3}
+.enq-status.ok{color:var(--ok)}
 .enq-status.bad{color:var(--danger)}
 @media (max-width:520px){.enq-grid{grid-template-columns:1fr}}
 
 /* ---------- Sign in, create account and reset password ---------- */
 .auth-open,.auth-open body{overflow:hidden}
 .auth[hidden],.auth-card [hidden],.account-menu [hidden]{display:none!important}
-.auth{position:fixed;inset:0;z-index:150;display:flex;overflow-y:auto;overscroll-behavior:contain;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:rgba(7,9,12,.66);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.auth-card{position:relative;flex:none;margin:auto;width:min(100%,440px);display:grid;gap:16px;padding:clamp(22px,4vw,30px);border-radius:28px;background:var(--night-2);color:var(--paper);border:1px solid var(--night-line);box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 50px 100px -40px rgba(0,0,0,.85)}
+.auth{position:fixed;inset:0;z-index:150;display:flex;overflow-y:auto;overscroll-behavior:contain;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:rgba(19,34,30,.3);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.auth-card{position:relative;flex:none;margin:auto;width:min(100%,440px);display:grid;gap:16px;padding:clamp(22px,4vw,30px);border-radius:28px;background:var(--night-2);color:var(--paper);border:1px solid var(--night-line);box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 50px 100px -40px rgba(19,34,30,.38)}
 .auth-close{position:absolute;top:16px;right:16px;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--night-line);background:transparent;color:var(--fog);cursor:pointer;transition:color .2s,border-color .2s}
-.auth-close:hover{color:var(--paper);border-color:rgba(242,245,247,.3)}
-.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-right:48px;padding:4px;border-radius:999px;background:rgba(242,245,247,.06)}
+.auth-close:hover{color:var(--paper);border-color:rgba(var(--wash),.3)}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-right:48px;padding:4px;border-radius:999px;background:rgba(var(--wash),.06)}
 .auth-tabs button{height:36px;border:0;border-radius:999px;background:transparent;color:var(--fog);font:600 14px/1 var(--font-sans);cursor:pointer;transition:background-color .2s,color .2s}
-.auth-tabs button[aria-selected="true"]{background:var(--paper);color:var(--night)}
+.auth-tabs button[aria-selected="true"]{background:#fff;color:var(--paper);box-shadow:0 1px 3px rgba(19,34,30,.14)}
 .auth h2{margin:6px 0 0;font-weight:700;font-size:clamp(1.6rem,4vw,1.9rem);line-height:1.08;letter-spacing:-.035em}
 .auth h2 em{font-family:var(--font-serif);font-style:italic;font-weight:400}
 .auth-sub{margin:-6px 0 2px;color:var(--fog);font-size:14.5px;line-height:1.5}
@@ -548,9 +560,9 @@ button{font:inherit;color:inherit}
 .pw{position:relative}
 .pw input{padding-right:74px}
 .pw-toggle{position:absolute;right:8px;top:50%;margin-top:-15px;height:30px;padding:0 10px;border:0;border-radius:999px;background:transparent;color:var(--fog);font:600 12.5px/1 var(--font-sans);cursor:pointer}
-.pw-toggle:hover{color:var(--paper);background:rgba(242,245,247,.08)}
+.pw-toggle:hover{color:var(--paper);background:rgba(var(--wash),.08)}
 .auth-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 12px;margin-top:-4px}
-.auth-link{padding:0;border:0;background:none;color:var(--marigold);font:600 13.5px/1.3 var(--font-sans);cursor:pointer;text-decoration:underline;text-decoration-color:rgba(245,165,36,.45);text-underline-offset:3px}
+.auth-link{padding:0;border:0;background:none;color:var(--accent-text);font:600 13.5px/1.3 var(--font-sans);cursor:pointer;text-decoration:underline;text-decoration-color:rgba(245,165,36,.45);text-underline-offset:3px}
 .auth-link:hover{text-decoration-color:currentColor}
 .auth-row .auth-link{margin-left:auto}
 .auth-hint{margin:0;color:var(--fog);font-size:12.5px}
@@ -558,7 +570,7 @@ button{font:inherit;color:inherit}
 .field input.code-input{font:600 24px/1.2 var(--font-mono);letter-spacing:.42em;text-align:center;padding-left:calc(14px + .42em)}
 .auth-submit[aria-disabled="true"]{opacity:.7;cursor:progress}
 .auth-msg{margin:0;font-size:14px;line-height:1.5;color:var(--danger)}
-.auth-msg.ok{color:#7fd6a3}
+.auth-msg.ok{color:var(--ok)}
 .auth-msg.info{color:var(--paper-2)}
 .auth-msg:empty{display:none}
 .auth-fine{margin:0;color:var(--fog);font-size:12.5px;line-height:1.5;text-align:center}
@@ -570,8 +582,78 @@ button{font:inherit;color:inherit}
 @keyframes authFade{from{opacity:0}}
 @keyframes authRise{from{opacity:0;transform:translateY(28px) scale(.97)}}
 .auth-card:focus{outline:none}
-.auth-skip{justify-self:center;color:var(--fog);text-decoration-color:rgba(152,163,173,.45)}
+.auth-skip{justify-self:center;color:var(--fog);text-decoration-color:rgba(92,108,102,.45)}
 .auth-skip:hover{color:var(--paper)}
+
+/* ---------- Trip ideas ---------- */
+.trip-grid{display:grid;gap:28px;margin-top:64px}
+@media (min-width:900px){.trip-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:32px}.trip-grid:has(.trip-plan[open]){align-items:start}}
+.trip{display:flex;flex-direction:column;border-radius:28px;overflow:hidden;background:var(--snow-2);border:1px solid var(--snow-line);transition:box-shadow .5s var(--ease),border-color .5s var(--ease)}
+.trip:hover{border-color:rgba(19,34,30,.18);box-shadow:0 34px 70px -42px rgba(19,34,30,.4)}
+.trip-media{position:relative;aspect-ratio:16/10;overflow:hidden;background:var(--night-3)}
+.trip-media img{display:block;width:100%;height:100%;object-fit:cover;transition:transform 1.1s var(--ease)}
+.trip:hover .trip-media img{transform:scale(1.035)}
+.trip-len{position:absolute;left:16px;top:16px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.88);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font:500 11.5px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
+.trip-body{flex:1;display:flex;flex-direction:column;gap:14px;padding:clamp(20px,2.6vw,30px)}
+.trip-region{margin:0;font:500 11.5px/1.3 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text)}
+.trip h3{margin:-4px 0 0;font-weight:700;font-size:clamp(1.55rem,2.3vw,1.95rem);line-height:1.06;letter-spacing:-.032em;text-wrap:balance}
+.trip-route{margin:0;color:var(--ink-2);font-size:15px;line-height:1.5}
+.trip-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:2px 0 0;padding-top:16px;border-top:1px solid var(--snow-line)}
+.trip-facts div{min-width:0}
+.trip-facts dt{font:500 10.5px/1.2 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.trip-facts dd{margin:7px 0 0;font-size:14.5px;font-weight:600;line-height:1.35;font-variant-numeric:tabular-nums}
+.trip-facts small{font-size:12.5px;font-weight:450;color:var(--ink-2)}
+@media (max-width:520px){.trip-facts{grid-template-columns:1fr 1fr}.trip-facts div:last-child{grid-column:1/-1}}
+.trip-note{margin:0;padding:11px 14px;border-radius:14px;background:rgba(238,155,47,.11);font-size:13.5px;line-height:1.5;color:var(--ink)}
+.trip-plan{border-top:1px solid var(--snow-line)}
+.trip-plan summary,.faq-item summary{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;list-style:none;-webkit-tap-highlight-color:transparent}
+.trip-plan summary::-webkit-details-marker,.faq-item summary::-webkit-details-marker{display:none}
+.trip-plan summary{padding:14px 0 0;font-weight:620;font-size:15px}
+.plus{position:relative;flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--snow-line);background:var(--snow);transition:transform .45s var(--ease),background-color .2s,border-color .2s}
+.plus::before,.plus::after{content:"";position:absolute;left:50%;top:50%;width:11px;height:1.5px;margin:-.75px 0 0 -5.5px;border-radius:1px;background:currentColor}
+.plus::after{transform:rotate(90deg)}
+details[open]>summary .plus{transform:rotate(45deg)}
+summary:hover .plus{border-color:rgba(19,34,30,.3)}
+.trip-plan ol{margin:14px 0 2px;padding:0;list-style:none;display:grid;gap:10px}
+.trip-plan li{display:grid;grid-template-columns:54px minmax(0,1fr);gap:10px;font-size:14.5px;line-height:1.5;color:var(--ink-2)}
+.trip-plan li b{font:500 11px/2 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink);white-space:nowrap}
+.trip-plan,.faq-item{interpolate-size:allow-keywords}
+.trip-plan::details-content,.faq-item::details-content{block-size:0;overflow:hidden;transition:block-size .5s var(--ease),content-visibility .5s allow-discrete}
+.trip-plan[open]::details-content,.faq-item[open]::details-content{block-size:auto}
+.trip-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:auto;padding-top:8px}
+.text-link{font-weight:600;font-size:14.5px;color:var(--ink);text-decoration:underline;text-decoration-color:rgba(19,34,30,.25);text-underline-offset:4px;transition:text-decoration-color .2s}
+.text-link:hover{text-decoration-color:currentColor}
+.no-enquiry .needs-enquiry,.in-claude .web-only{display:none!important}
+.trips-note{margin:24px 0 0;max-width:62em;font-size:14px;line-height:1.55;color:var(--ink-2)}
+.prep{display:grid;gap:30px;margin-top:72px;padding:clamp(24px,3.6vw,44px);border-radius:28px;background:var(--night);border:1px solid var(--snow-line)}
+.prep h3{margin:0;font-weight:700;font-size:clamp(1.5rem,2.4vw,2rem);letter-spacing:-.03em}
+.prep-list{list-style:none;margin:0;padding:0;display:grid;gap:26px 32px}
+@media (min-width:700px){.prep-list{grid-template-columns:1fr 1fr}}
+@media (min-width:1080px){.prep-list{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.prep-list li{display:grid;gap:8px;align-content:start;font-size:15px;line-height:1.55;color:var(--ink-2)}
+.prep-list svg{width:40px;height:40px;padding:9px;margin-bottom:6px;border-radius:12px;background:var(--snow);border:1px solid var(--snow-line);color:var(--sea)}
+.prep-list b{color:var(--ink);font-size:17px;font-weight:650;letter-spacing:-.015em}
+
+/* ---------- Questions ---------- */
+.faq-grid{display:grid;gap:48px}
+.faq-head{justify-items:start}
+.faq-head .btn{margin-top:6px}
+@media (min-width:960px){
+  .faq-grid{grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr);column-gap:88px;align-items:start}
+  .faq-head{position:sticky;top:calc(var(--nav-h) + 48px)}
+}
+.faq-list{border-top:1px solid var(--night-line)}
+.faq-item{border-bottom:1px solid var(--night-line)}
+.faq-item summary{padding:22px 0;font-weight:620;font-size:clamp(1.0625rem,1.45vw,1.2rem);line-height:1.35;letter-spacing:-.015em}
+.faq-item .plus{border-color:var(--night-line);background:var(--night-2)}
+.faq-a{padding:0 52px 24px 0}
+.faq-a p{margin:0;max-width:40em;color:var(--paper-2);font-size:16px;line-height:1.62}
+.foot.band-dark{background:linear-gradient(180deg,var(--night) 0%,#E6EEEA 100%)}
+
+/* New content rises into view (its own small module; the scroll film is unchanged). */
+.rise-ready{opacity:0;transform:translateY(34px)}
+.rise-ready.is-in{opacity:1;transform:none;transition:opacity .9s var(--ease),transform 1.2s cubic-bezier(.16,1,.3,1);transition-delay:var(--rise-delay,0s)}
+@media print{.rise-ready{opacity:1!important;transform:none!important}}
 
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce){
@@ -632,9 +714,10 @@ button{font:inherit;color:inherit}
     <nav aria-label="Sections">
       <ul class="nav-links">
         <li><a href="#places" data-scramble>Places</a></li>
-        <li><a href="#how" data-scramble>How it works</a></li>
-        <li><a href="#seasons" data-scramble>When to go</a></li>
-        <li><a href="#travel-well" data-scramble>Travel well</a></li>
+        <li><a href="#trips" data-scramble>Trip ideas</a></li>
+        <li class="nav-more"><a href="#how" data-scramble>How it works</a></li>
+        <li class="nav-more"><a href="#seasons" data-scramble>When to go</a></li>
+        <li><a href="#faq" data-scramble>FAQ</a></li>
       </ul>
     </nav>
     <div class="account" id="account" hidden>
@@ -693,7 +776,7 @@ button{font:inherit;color:inherit}
   </section>
 
   <!-- 2. Statement over a live 3D ridge-line terrain -->
-  <section class="statement" id="story" data-tone="dark" aria-labelledby="statementText">
+  <section class="statement" id="story" data-tone="light" aria-labelledby="statementText">
     <div class="statement-stage">
       <canvas id="terrain" aria-hidden="true"></canvas>
       <div class="statement-veil" aria-hidden="true"></div>
@@ -746,8 +829,117 @@ button{font:inherit;color:inherit}
     </div>
   </section>
 
+  <!-- 3b. Trip ideas: ready-made routes with seasons, budgets and day-by-day plans -->
+  <section class="trips band-light section" id="trips" data-tone="light" aria-labelledby="tripsTitle">
+    <div class="wrap">
+      <div class="sec-head split">
+        <p class="eyebrow" data-reveal>Trip ideas</p>
+        <h2 class="h2" id="tripsTitle" data-reveal>Ready-made routes, <em>yours to tailor.</em></h2>
+        <p class="lead" data-reveal>Four routes through quieter India, with the best months, a rough daily budget and a day-by-day plan. Ask the consultant to fit one to your dates.</p>
+      </div>
+      <div class="trip-grid">
+        <article class="trip" data-rise>
+          <div class="trip-media"><img src="places/meghalaya.jpg" alt="A double-decker living root bridge over a forest stream in Meghalaya" width="960" height="672" loading="lazy" decoding="async"><span class="trip-len">5 days</span></div>
+          <div class="trip-body">
+            <p class="trip-region">Meghalaya</p>
+            <h3>Root bridges and clear rivers</h3>
+            <p class="trip-route">Guwahati → Shillong → Sohra → Nongriat → Dawki → Mawlynnong</p>
+            <dl class="trip-facts">
+              <div><dt>Best months</dt><dd>Oct–Apr</dd></div>
+              <div><dt>Rough budget</dt><dd>₹2,500–4,500 <small>a day</small></dd></div>
+              <div><dt>Effort</dt><dd>Moderate: steep steps</dd></div>
+            </dl>
+            <details class="trip-plan">
+              <summary>Day by day <span class="plus" aria-hidden="true"></span></summary>
+              <ol><li><b>Day 1</b><span>Guwahati to Shillong, about 3 hours by road. Evening at Ward’s Lake or Police Bazar.</span></li><li><b>Day 2</b><span>Drive to Sohra (Cherrapunji) for Nohkalikai Falls and Mawsmai Cave. Stay in Sohra or Tyrna.</span></li><li><b>Day 3</b><span>From Tyrna, walk down about 3,000 steps to the double-decker root bridge at Nongriat, then on to Rainbow Falls. Sleep in a village homestay.</span></li><li><b>Day 4</b><span>Climb back up, then drive to Dawki and Shnongpdeng for a boat ride on the clear Umngot river.</span></li><li><b>Day 5</b><span>Mawlynnong village and the Riwai root bridge, then back to Shillong or Guwahati.</span></li></ol>
+            </details>
+            <div class="trip-actions">
+              <button class="btn btn-dark btn-sm" type="button" data-ask="Plan a 5-day Meghalaya trip from Guwahati: Shillong, Sohra, the Nongriat root bridges, Dawki and Mawlynnong. Include the best months, where to stay and a daily budget in rupees." aria-label="Plan the Meghalaya trip with the consultant"><span data-scramble>Plan this trip</span> <span class="arrow" aria-hidden="true">→</span></button>
+              <a class="text-link needs-enquiry" href="#enquiry" data-enquire="Meghalaya, Meghalaya" data-trip="5-day Meghalaya trip">Send an enquiry</a>
+            </div>
+          </div>
+        </article>
+        <article class="trip" data-rise>
+          <div class="trip-media"><img src="places/spiti-valley.jpg" alt="Key Monastery on its hill above the Spiti valley, with snow peaks behind" width="960" height="672" loading="lazy" decoding="async"><span class="trip-len">8 days</span></div>
+          <div class="trip-body">
+            <p class="trip-region">Spiti Valley, Himachal Pradesh</p>
+            <h3>A cold-desert loop</h3>
+            <p class="trip-route">Shimla → Kalpa → Nako → Tabo → Kaza → Chandratal → Manali</p>
+            <dl class="trip-facts">
+              <div><dt>Best months</dt><dd>Jun–Oct</dd></div>
+              <div><dt>Rough budget</dt><dd>₹3,500–6,000 <small>a day</small></dd></div>
+              <div><dt>Effort</dt><dd>High altitude, long drives</dd></div>
+            </dl>
+            <p class="trip-note">The road over Kunzum Pass is usually open from June to October. Foreign nationals need a permit for the Kinnaur–Spiti border stretch.</p>
+            <details class="trip-plan">
+              <summary>Day by day <span class="plus" aria-hidden="true"></span></summary>
+              <ol><li><b>Day 1</b><span>Shimla to Kalpa in Kinnaur, a long mountain drive of about 9 hours, with views of the Kinner Kailash range.</span></li><li><b>Day 2</b><span>Kalpa to Nako, a village beside a small lake at about 3,600 m.</span></li><li><b>Day 3</b><span>Nako to Tabo, whose monastery was founded in 996 CE.</span></li><li><b>Day 4</b><span>Tabo to Kaza, stopping at Dhankar Monastery on its cliff.</span></li><li><b>Day 5</b><span>A slow day in Kaza to get used to the altitude, with a short visit to Key Monastery.</span></li><li><b>Day 6</b><span>Kibber, Langza, Hikkim and Komic: farming villages above 4,000 m.</span></li><li><b>Day 7</b><span>Kaza to Chandratal over Kunzum Pass (about 4,550 m). Sleep in a camp a short walk from the lake.</span></li><li><b>Day 8</b><span>Chandratal to Manali via Batal, Gramphu and the Atal Tunnel.</span></li></ol>
+            </details>
+            <div class="trip-actions">
+              <button class="btn btn-dark btn-sm" type="button" data-ask="Plan an 8-day Spiti Valley loop from Shimla to Manali via Kalpa, Nako, Tabo, Kaza and Chandratal. Include acclimatisation, road conditions and a daily budget in rupees." aria-label="Plan the Spiti Valley trip with the consultant"><span data-scramble>Plan this trip</span> <span class="arrow" aria-hidden="true">→</span></button>
+              <a class="text-link needs-enquiry" href="#enquiry" data-enquire="Spiti Valley, Himachal Pradesh" data-trip="8-day Spiti Valley trip">Send an enquiry</a>
+            </div>
+          </div>
+        </article>
+        <article class="trip" data-rise>
+          <div class="trip-media"><img src="places/tawang.jpg" alt="Tawang Monastery’s white walls and golden roofs, with snow peaks behind" width="960" height="672" loading="lazy" decoding="async"><span class="trip-len">7 days</span></div>
+          <div class="trip-body">
+            <p class="trip-region">Tawang, Arunachal Pradesh</p>
+            <h3>Over Sela Pass to Tawang</h3>
+            <p class="trip-route">Guwahati → Bhalukpong → Dirang → Sela Pass → Tawang → Bomdila</p>
+            <dl class="trip-facts">
+              <div><dt>Best months</dt><dd>Mar–Jun, Sep–Oct</dd></div>
+              <div><dt>Rough budget</dt><dd>₹3,000–5,500 <small>a day</small></dd></div>
+              <div><dt>Effort</dt><dd>Long mountain drives</dd></div>
+            </dl>
+            <p class="trip-note">Indian citizens need an Inner Line Permit, applied for online. Foreign nationals need a Protected Area Permit.</p>
+            <details class="trip-plan">
+              <summary>Day by day <span class="plus" aria-hidden="true"></span></summary>
+              <ol><li><b>Day 1</b><span>Guwahati to Bhalukpong on the Kameng river, the gateway to Arunachal Pradesh, where permits are checked.</span></li><li><b>Day 2</b><span>Bhalukpong to Dirang, past the Tipi orchid centre. Evening at the hot springs.</span></li><li><b>Day 3</b><span>Dirang to Tawang over Sela Pass (about 4,170 m), past Sela Lake and the Jaswant Garh memorial.</span></li><li><b>Day 4</b><span>Tawang Monastery, founded around 1681, and the Tawang War Memorial.</span></li><li><b>Day 5</b><span>A day trip to Shungetser (Madhuri) Lake and Bum La on the border, with an extra permit arranged in Tawang, for Indian citizens only.</span></li><li><b>Day 6</b><span>Back over Sela to Bomdila and its monastery.</span></li><li><b>Day 7</b><span>Bomdila to Guwahati.</span></li></ol>
+            </details>
+            <div class="trip-actions">
+              <button class="btn btn-dark btn-sm" type="button" data-ask="Plan a 7-day trip from Guwahati to Tawang via Dirang and Sela Pass, returning via Bomdila. Include permits, the best months and a daily budget in rupees." aria-label="Plan the Tawang trip with the consultant"><span data-scramble>Plan this trip</span> <span class="arrow" aria-hidden="true">→</span></button>
+              <a class="text-link needs-enquiry" href="#enquiry" data-enquire="Tawang, Arunachal Pradesh" data-trip="7-day Tawang trip">Send an enquiry</a>
+            </div>
+          </div>
+        </article>
+        <article class="trip" data-rise>
+          <div class="trip-media"><img src="places/alleppey.jpg" alt="A wooden houseboat on palm-lined backwaters in Kerala" width="960" height="672" loading="lazy" decoding="async"><span class="trip-len">6 days</span></div>
+          <div class="trip-body">
+            <p class="trip-region">Kerala</p>
+            <h3>Backwaters to tea hills</h3>
+            <p class="trip-route">Kochi → Alappuzha → Kuttanad → Munnar → Vattavada → Kochi</p>
+            <dl class="trip-facts">
+              <div><dt>Best months</dt><dd>Oct–Mar</dd></div>
+              <div><dt>Rough budget</dt><dd>₹2,500–5,000 <small>a day</small></dd></div>
+              <div><dt>Effort</dt><dd>Easy</dd></div>
+            </dl>
+            <details class="trip-plan">
+              <summary>Day by day <span class="plus" aria-hidden="true"></span></summary>
+              <ol><li><b>Day 1</b><span>Fort Kochi: the Chinese fishing nets, Mattancherry and the spice market.</span></li><li><b>Day 2</b><span>To Alappuzha, about 1.5 hours. Take a small country boat through the narrow canals the big houseboats can’t enter.</span></li><li><b>Day 3</b><span>Kuttanad, where rice is farmed below sea level. Sleep on a houseboat or at a canal-side homestay.</span></li><li><b>Day 4</b><span>Up to Munnar, about 5 hours, through tea estates.</span></li><li><b>Day 5</b><span>Vattavada, a farming village past Top Station with terraced fields of vegetables and strawberries.</span></li><li><b>Day 6</b><span>Eravikulam National Park early for the Nilgiri tahr (it closes for calving around February and March), then down to Kochi.</span></li></ol>
+            </details>
+            <div class="trip-actions">
+              <button class="btn btn-dark btn-sm" type="button" data-ask="Plan a 6-day Kerala trip: Kochi, the Alappuzha backwaters by country boat, Kuttanad, Munnar’s tea hills and Vattavada. Include the best months and a daily budget in rupees." aria-label="Plan the Kerala trip with the consultant"><span data-scramble>Plan this trip</span> <span class="arrow" aria-hidden="true">→</span></button>
+              <a class="text-link needs-enquiry" href="#enquiry" data-enquire="Alleppey, Kerala" data-trip="6-day Kerala trip">Send an enquiry</a>
+            </div>
+          </div>
+        </article>
+      </div>
+      <p class="trips-note">Budgets are rough estimates per person per day for two people sharing: homestays or guesthouses, local food and shared or hired transport. Getting to the starting city is extra, and prices rise in peak season.</p>
+      <div class="prep" data-rise>
+        <h3>Before you go</h3>
+        <ul class="prep-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M4 20h16M6 20V9l6-5 6 5v11"/><path d="M10 20v-5h4v5"/></svg><b>Leave a spare day</b><span>Landslides in the monsoon and snow in winter can close mountain roads for a day or more.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="m3 20 6-11 4 6 3-4 5 9z"/><path d="M14 6V2l3 1.5L14 5"/></svg><b>Climb slowly</b><span>Above about 3,000 m, gain height gradually and rest on your second day. A headache or breathlessness is a sign to stop climbing.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="3" y="6.5" width="18" height="11" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9.5v5M17.5 9.5v5"/></svg><b>Carry some cash</b><span>UPI works in most towns, but ATMs and mobile data are scarce in remote valleys.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/></svg><b>Save maps offline</b><span>Download maps and bookings before you lose signal, and share your route with someone at home.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <!-- 4. How it works: sticky 3D device, steps drive the screen -->
-  <section class="how band-dark section" id="how" data-tone="dark" aria-labelledby="howTitle">
+  <section class="how band-dark section" id="how" data-tone="light" aria-labelledby="howTitle">
     <div class="wrap">
       <div class="sec-head split">
         <p class="eyebrow" data-reveal>How it works</p>
@@ -830,7 +1022,7 @@ button{font:inherit;color:inherit}
   </section>
 
   <!-- 6. The consultant (live chat) -->
-  <section class="consult band-dark section" id="consultant" data-tone="dark" aria-labelledby="consultTitle">
+  <section class="consult band-dark section" id="consultant" data-tone="light" aria-labelledby="consultTitle">
     <div class="wrap">
       <div class="sec-head split">
         <p class="eyebrow" data-reveal>The consultant</p>
@@ -913,9 +1105,56 @@ button{font:inherit;color:inherit}
     </div>
   </section>
 
+  <!-- 8. Questions -->
+  <section class="faq band-dark section" id="faq" data-tone="light" aria-labelledby="faqTitle">
+    <div class="wrap faq-grid">
+      <div class="sec-head faq-head">
+        <p class="eyebrow" data-reveal>Questions</p>
+        <h2 class="h2" id="faqTitle" data-reveal>Good to know <em>before you go.</em></h2>
+        <p class="lead" data-reveal>Short answers to common questions. For anything else, ask the consultant.</p>
+        <a class="btn btn-dark" href="#consultant"><span data-scramble>Ask the consultant</span> <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <div class="faq-list">
+        <details class="faq-item" data-rise>
+          <summary>Is the consultant free to use? <span class="plus" aria-hidden="true"></span></summary>
+          <div class="faq-a"><p>Yes. Asking the consultant costs nothing, and you don’t need an account to use it.</p></div>
+        </details>
+        <details class="faq-item" data-rise>
+          <summary>Can I trust the answers? <span class="plus" aria-hidden="true"></span></summary>
+          <div class="faq-a"><p>Use them as a well-informed starting point. The consultant is an AI (Claude): it’s good with ideas, seasons and routes, but it can be wrong or out of date. Check roads, permits, prices and weather with local sources before you book.</p></div>
+        </details>
+        <details class="faq-item" data-rise>
+          <summary>Which places need a permit? <span class="plus" aria-hidden="true"></span></summary>
+          <div class="faq-a"><p>Indian citizens need an Inner Line Permit (ILP) for Arunachal Pradesh, Nagaland, Mizoram and Manipur; most can be applied for online. Foreign nationals need a Protected Area Permit or Restricted Area Permit for many border areas, including Arunachal Pradesh, Sikkim and parts of Ladakh and Himachal Pradesh. Rules change, so check the official sites before you travel.</p></div>
+        </details>
+        <details class="faq-item" data-rise>
+          <summary>When is the best time to go? <span class="plus" aria-hidden="true"></span></summary>
+          <div class="faq-a"><p>It depends on where. High Himalayan villages are best in May–June and September–October; rain-shadow valleys such as Spiti and Ladakh stay open through the summer. The North East is driest from October to April, the Konkan coast is best from November to March, and the Western Ghats are greenest in the monsoon, June to September.</p></div>
+        </details>
+        <details class="faq-item" data-rise>
+          <summary>Is it safe to travel in the monsoon? <span class="plus" aria-hidden="true"></span></summary>
+          <div class="faq-a"><p>Often, with care. From June to September, landslides can close roads in the Himalaya and the North East for hours or days, and the sea is rough along the coast. Keep a spare day, avoid driving in the hills after dark, and check local road and weather updates each morning.</p></div>
+        </details>
+        <details class="faq-item web-only" data-rise>
+          <summary>Do I need an account? <span class="plus" aria-hidden="true"></span></summary>
+          <div class="faq-a"><p>No. The site and the consultant work without one. A free account lets you save places and keep your chats on every device.</p></div>
+        </details>
+        <details class="faq-item web-only needs-enquiry" data-rise>
+          <summary>How does a trip enquiry work? <span class="plus" aria-hidden="true"></span></summary>
+          <div class="faq-a"><p>Fill in the form at the bottom of this page with where and when you’d like to go and how many of you are travelling. We reply by email to the address you give.</p></div>
+        </details>
+        <details class="faq-item web-only" data-rise>
+          <summary>What do you keep about me? <span class="plus" aria-hidden="true"></span></summary>
+          <div class="faq-a"><p>The questions you ask the consultant and their answers, the places you view and save, and basic visit details: country, device and browser. We don’t store your IP address or exact location, and passwords are kept only as secure hashes. To have your data deleted, ask us through the enquiry form.</p></div>
+        </details>
+      </div>
+    </div>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is the consultant free to use?","acceptedAnswer":{"@type":"Answer","text":"Yes. Asking the consultant costs nothing, and you don’t need an account to use it."}},{"@type":"Question","name":"Can I trust the answers?","acceptedAnswer":{"@type":"Answer","text":"Use them as a well-informed starting point. The consultant is an AI (Claude): it’s good with ideas, seasons and routes, but it can be wrong or out of date. Check roads, permits, prices and weather with local sources before you book."}},{"@type":"Question","name":"Which places need a permit?","acceptedAnswer":{"@type":"Answer","text":"Indian citizens need an Inner Line Permit (ILP) for Arunachal Pradesh, Nagaland, Mizoram and Manipur; most can be applied for online. Foreign nationals need a Protected Area Permit or Restricted Area Permit for many border areas, including Arunachal Pradesh, Sikkim and parts of Ladakh and Himachal Pradesh. Rules change, so check the official sites before you travel."}},{"@type":"Question","name":"When is the best time to go?","acceptedAnswer":{"@type":"Answer","text":"It depends on where. High Himalayan villages are best in May–June and September–October; rain-shadow valleys such as Spiti and Ladakh stay open through the summer. The North East is driest from October to April, the Konkan coast is best from November to March, and the Western Ghats are greenest in the monsoon, June to September."}},{"@type":"Question","name":"Is it safe to travel in the monsoon?","acceptedAnswer":{"@type":"Answer","text":"Often, with care. From June to September, landslides can close roads in the Himalaya and the North East for hours or days, and the sea is rough along the coast. Keep a spare day, avoid driving in the hills after dark, and check local road and weather updates each morning."}},{"@type":"Question","name":"Do I need an account?","acceptedAnswer":{"@type":"Answer","text":"No. The site and the consultant work without one. A free account lets you save places and keep your chats on every device."}},{"@type":"Question","name":"How does a trip enquiry work?","acceptedAnswer":{"@type":"Answer","text":"Fill in the form at the bottom of this page with where and when you’d like to go and how many of you are travelling. We reply by email to the address you give."}},{"@type":"Question","name":"What do you keep about me?","acceptedAnswer":{"@type":"Answer","text":"The questions you ask the consultant and their answers, the places you view and save, and basic visit details: country, device and browser. We don’t store your IP address or exact location, and passwords are kept only as secure hashes. To have your data deleted, ask us through the enquiry form."}}]}</script>
+  </section>
+
 </main>
 
-<footer class="foot band-dark" data-tone="dark">
+<footer class="foot band-dark" data-tone="light">
   <canvas class="foot-ridge" id="footRidge" aria-hidden="true"></canvas>
   <div class="wrap" style="position:relative">
     <div class="foot-cta">
@@ -955,6 +1194,7 @@ button{font:inherit;color:inherit}
         <p class="foot-h">Explore</p>
         <ul>
           <li><a href="#places" data-scramble>Places</a></li>
+          <li><a href="#trips" data-scramble>Trip ideas</a></li>
           <li><a href="#how" data-scramble>How it works</a></li>
           <li><a href="#seasons" data-scramble>When to go</a></li>
           <li><a href="#travel-well" data-scramble>Travel well</a></li>
@@ -966,6 +1206,7 @@ button{font:inherit;color:inherit}
           <li><a href="#consultant" data-scramble>Ask the consultant</a></li>
           <li><a href="#seasons" data-scramble>Best months by region</a></li>
           <li><a href="#travel-well" data-scramble>Permits and etiquette</a></li>
+          <li><a href="#faq" data-scramble>Questions and answers</a></li>
           <li><a href="#enquiry" data-scramble>Send a trip enquiry</a></li>
         </ul>
       </nav>
@@ -1088,7 +1329,7 @@ button{font:inherit;color:inherit}
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, small ? 1.5 : 1.75));
     renderer.setClearColor(0x000000, 0);
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x080c12, 18, 74);
+    scene.fog = new THREE.Fog(0xf5f8f6, 18, 74);
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 120);
     const n2 = makeNoise2D(11);
     const COLS = small ? 130 : 220, ROWS = small ? 70 : 112, W = 56, D = 50;
@@ -1100,7 +1341,7 @@ button{font:inherit;color:inherit}
       const valley = .3 + .7 * smooth(.5, 7.5, Math.abs(x + Math.sin(z * .13) * 2.4));
       return Math.pow(f, 1.55) * (1.0 + 10.5 * north) * valley;
     };
-    const cLow = new THREE.Color(0x243747), cMid = new THREE.Color(0x5b8597), cHigh = new THREE.Color(0xe9eff2), cGlow = new THREE.Color(0xf5a524), tmp = new THREE.Color();
+    const cLow = new THREE.Color(0xc6d8d0), cMid = new THREE.Color(0x76a095), cHigh = new THREE.Color(0x2c6a64), cGlow = new THREE.Color(0xe08a1e), tmp = new THREE.Color();
     const colorAt = y => {
       const t = clamp(y / 8.2);
       if (t < .45) tmp.copy(cLow).lerp(cMid, t / .45); else tmp.copy(cMid).lerp(cHigh, (t - .45) / .55);
@@ -1128,7 +1369,7 @@ button{font:inherit;color:inherit}
     const SN = small ? 220 : 420, snow = new Float32Array(SN * 3), rnd = mulberry32(5);
     for (let i = 0; i < SN; i++) { snow[i * 3] = (rnd() - .5) * 36; snow[i * 3 + 1] = rnd() * 14; snow[i * 3 + 2] = -26 + rnd() * 40; }
     const sgeo = new THREE.BufferGeometry(); sgeo.setAttribute('position', new THREE.BufferAttribute(snow, 3));
-    scene.add(new THREE.Points(sgeo, new THREE.PointsMaterial({ color: 0xdfe8ee, size: .055, transparent: true, opacity: .65 })));
+    scene.add(new THREE.Points(sgeo, new THREE.PointsMaterial({ color: 0x9fbab1, size: .055, transparent: true, opacity: .55 })));
 
     let mx = 0, my = 0, tx = 0, ty = 0, visible = false, raf = 0, last = 0;
     addEventListener('pointermove', e => { tx = e.clientX / innerWidth - .5; ty = e.clientY / innerHeight - .5; }, { passive: true });
@@ -1173,6 +1414,7 @@ button{font:inherit;color:inherit}
      Claude account is their account, and this page's own storage keeps their saved places and
      chats, private to them. Same calls as the website's backend, so the rest of the page is shared. */
   const IN_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
+  root.classList.toggle('in-claude', IN_CLAUDE);
   function claudeBackend() {
     const fail = code => Object.assign(new Error(code), { code });
     let started = null, db = null, uid = null;
@@ -2030,7 +2272,7 @@ button{font:inherit;color:inherit}
       for (let L = 0; L < 7; L++) {
         c.beginPath();
         for (let x = 0; x <= W; x += 4) { let v = 1 - Math.abs(fbm(n, x / W * 5, L * 3.3, 5) * 2 - 1); v = Math.pow(v, 1.6); c.lineTo(x, H * (.35 + L * .1) - v * H * (.45 - L * .04)); }
-        c.strokeStyle = L === 0 ? 'rgba(245,165,36,.55)' : `rgba(147,198,216,${.26 - L * .03})`; c.lineWidth = 1; c.stroke();
+        c.strokeStyle = L === 0 ? 'rgba(224,138,30,.7)' : `rgba(44,106,100,${.3 - L * .035})`; c.lineWidth = 1; c.stroke();
       }
     }
     new ResizeObserver(draw).observe(cv);
@@ -2291,6 +2533,31 @@ button{font:inherit;color:inherit}
         status.textContent = err.code === 'too_many' ? 'You’ve sent several enquiries already. Please try again later.' : 'That didn’t send. Check your connection and try again.';
       } finally { submit.disabled = false; }
     });
+  })();
+
+  /* ---------- Trip ideas and questions: rise into view, open smoothly, prefill enquiries ---------- */
+  (function newContent() {
+    if (motion && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver(entries => {
+        let i = 0;
+        entries.forEach(en => {
+          if (!en.isIntersecting) return;
+          en.target.style.setProperty('--rise-delay', (i++ * .09).toFixed(2) + 's');
+          en.target.classList.add('is-in'); io.unobserve(en.target);
+        });
+      }, { rootMargin: '0px 0px -10% 0px' });
+      $$('[data-rise]').forEach(el => { el.classList.add('rise-ready'); io.observe(el); });
+    }
+    // Opening a plan or an answer makes the page taller: re-measure the scroll film once it settles.
+    let t = 0;
+    $$('.trip-plan, .faq-item').forEach(d => d.addEventListener('toggle', () => {
+      clearTimeout(t); t = setTimeout(() => { if (motion && window.ScrollTrigger) ScrollTrigger.refresh(); }, 560);
+    }));
+    $$('[data-enquire]').forEach(a => a.addEventListener('click', () => {
+      const sel = $('#enqPlace'), msg = $('#enqMessage');
+      if (Array.from(sel.options).some(o => o.value === a.dataset.enquire)) sel.value = a.dataset.enquire;
+      if (!msg.value.trim()) msg.value = `I'm interested in the ${a.dataset.trip} from your trip ideas.`;
+    }));
   })();
 
   /* ---------- Scroll choreography ---------- */
