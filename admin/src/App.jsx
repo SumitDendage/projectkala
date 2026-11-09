@@ -3,10 +3,11 @@ import { api, errorText } from './api.js';
 import Overview from './components/Overview.jsx';
 import { Accounts, Enquiries, Places, Questions, Visitors } from './components/Lists.jsx';
 import { ChatPanel, VisitorPanel } from './components/Panels.jsx';
+import { Finder, Gems } from './components/Features.jsx';
 
 const TABS = [
   ['overview', 'Overview'], ['visitors', 'Visitors'], ['accounts', 'Accounts'],
-  ['questions', 'Questions'], ['places', 'Places'], ['enquiries', 'Enquiries']
+  ['questions', 'Questions'], ['places', 'Places'], ['finder', 'Gem Finder'], ['gems', 'Traveller gems'], ['enquiries', 'Enquiries']
 ];
 const tabFromHash = () => {
   const h = location.hash.replace(/^#/, '');
@@ -106,7 +107,7 @@ const Setup = () => (
 export default function App() {
   const [me, setMe] = useState(undefined); // undefined while loading, null when signed out
   const [setup, setSetup] = useState(false), [failed, setFailed] = useState(null);
-  const [status, setStatus] = useState(null), [newEnquiries, setNewEnquiries] = useState(0);
+  const [status, setStatus] = useState(null), [newEnquiries, setNewEnquiries] = useState(0), [newGems, setNewGems] = useState(0);
   const [tab, setTab] = useState(tabFromHash);
   const [visitor, setVisitor] = useState(null), [chat, setChat] = useState(null);
 
@@ -123,11 +124,12 @@ export default function App() {
     return () => removeEventListener('hashchange', on);
   }, []);
   const countNew = useCallback(() => api('/admin/enquiries?status=new').then(d => setNewEnquiries(d.rows.length), () => {}), []);
+  const countGems = useCallback(() => api('/admin/gems?status=pending').then(d => setNewGems(d.rows.length), () => {}), []);
   useEffect(() => {
     if (!me || !me.isAdmin) return;
     api('/admin/status').then(setStatus, () => {});
-    countNew();
-  }, [me, countNew]);
+    countNew(); countGems();
+  }, [me, countNew, countGems]);
 
   const go = id => { if (location.hash !== '#' + id) location.hash = id; setTab(id); window.scrollTo(0, 0); };
   async function signOut() {
@@ -151,6 +153,7 @@ export default function App() {
           {TABS.map(([id, label]) => (
             <button key={id} role="tab" type="button" aria-selected={tab === id} onClick={() => go(id)}>
               {label}{id === 'enquiries' && newEnquiries > 0 && <span className="count" aria-label={`${newEnquiries} new`}>{newEnquiries}</span>}
+              {id === 'gems' && newGems > 0 && <span className="count" aria-label={`${newGems} waiting for review`}>{newGems}</span>}
             </button>
           ))}
         </nav>
@@ -160,6 +163,8 @@ export default function App() {
           {tab === 'accounts' && <Accounts {...open} />}
           {tab === 'questions' && <Questions {...open} />}
           {tab === 'places' && <Places {...open} />}
+          {tab === 'finder' && <Finder {...open} />}
+          {tab === 'gems' && <Gems onChanged={countGems} />}
           {tab === 'enquiries' && <Enquiries onChanged={countNew} />}
         </div>
         {visitor && <VisitorPanel id={visitor} onClose={closeVisitor} />}

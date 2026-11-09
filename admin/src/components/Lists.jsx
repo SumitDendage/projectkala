@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { api, errorText } from '../api.js';
 import { Card, Empty, Failed, HBars, Pager, Search, useApi } from './ui.jsx';
 import { ago, date, dateTime, device, n, place, placeName, placeState, plain } from '../format.js';
+import { Reminders } from './Features.jsx';
 
 const query = (params) => {
   const q = new URLSearchParams(Object.entries(params).filter(([, v]) => v !== '' && v != null && v !== false));
@@ -181,6 +182,7 @@ export function Places({ onOpenVisitor }) {
           </Card>
         </div>
       )}
+      {data && <Reminders />}
     </div>
   );
 }

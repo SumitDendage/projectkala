@@ -147,6 +147,68 @@ create table if not exists hg.enquiries (
 );
 create index if not exists enquiries_created_idx on hg.enquiries (created_at desc);
 
+-- ---------- Gem Finder: the four-question match (answers and the places it suggested) ----------
+create table if not exists hg.finder_runs (
+  id          bigint generated always as identity primary key,
+  visitor_id  uuid not null references hg.visitors(id) on delete cascade,
+  user_id     uuid references hg.users(id) on delete set null,
+  month       smallint check (month between 1 and 12),
+  landscape   text check (landscape in ('mountains', 'water', 'forest', 'desert', 'heritage')),
+  effort      smallint check (effort between 1 and 3),
+  budget      smallint check (budget between 1 and 3),
+  results     text[] not null default '{}',
+  created_at  timestamptz not null default now()
+);
+create index if not exists finder_runs_created_idx on hg.finder_runs (created_at desc);
+create index if not exists finder_runs_visitor_idx on hg.finder_runs (visitor_id, created_at desc);
+
+-- ---------- Traveller gems: hidden places shared by visitors, shown once an admin approves them ----------
+create table if not exists hg.gems (
+  id           uuid primary key default gen_random_uuid(),
+  visitor_id   uuid references hg.visitors(id) on delete set null,
+  user_id      uuid references hg.users(id) on delete set null,
+  place        text not null check (char_length(place) between 2 and 80),
+  state        text not null check (char_length(state) between 2 and 60),
+  story        text not null check (char_length(story) between 20 and 700),
+  best_months  text check (char_length(best_months) <= 60),
+  author       text check (char_length(author) <= 40),
+  email        text check (char_length(email) <= 200),
+  status       text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  votes        integer not null default 0,
+  created_at   timestamptz not null default now(),
+  reviewed_at  timestamptz
+);
+create index if not exists gems_status_idx on hg.gems (status, created_at desc);
+
+-- "Want to go" marks: one per browser per gem.
+create table if not exists hg.gem_votes (
+  gem_id      uuid not null references hg.gems(id) on delete cascade,
+  visitor_id  uuid not null references hg.visitors(id) on delete cascade,
+  created_at  timestamptz not null default now(),
+  primary key (gem_id, visitor_id)
+);
+
+-- ---------- Season reminders: one email when a place's best months begin ----------
+-- Confirmed by email first (only a SHA-256 of the confirmation token is kept). stop_token is the
+-- random value in every email's "stop" link; it can only switch that one reminder off.
+create table if not exists hg.season_alerts (
+  id                uuid primary key default gen_random_uuid(),
+  email             text not null check (char_length(email) between 3 and 200 and email = lower(email)),
+  place_slug        text not null,
+  visitor_id        uuid references hg.visitors(id) on delete set null,
+  user_id           uuid references hg.users(id) on delete set null,
+  confirm_hash      text unique,
+  confirm_sent_at   timestamptz,
+  confirmed_at      timestamptz,
+  stop_token        text not null unique,
+  stopped_at        timestamptz,
+  last_sent_month   text,
+  last_sent_at      timestamptz,
+  created_at        timestamptz not null default now(),
+  unique (email, place_slug)
+);
+create index if not exists season_alerts_place_idx on hg.season_alerts (place_slug) where confirmed_at is not null and stopped_at is null;
+
 -- ---------- The backend's own login (created separately, once) ----------
 -- The live backend connects as role "hg_app" through Supabase's transaction pooler
 -- (user hg_app.<project-ref>, port 6543). It can use only the tables in this schema:
@@ -166,9 +228,19 @@ create index if not exists enquiries_created_idx on hg.enquiries (created_at des
 do $$
 declare t text;
 begin
-  foreach t in array array['users','sessions','tokens','auth_attempts','visitors','visits','chats','chat_messages','place_events','saved_places','enquiries'] loop
+  foreach t in array array['users','sessions','tokens','auth_attempts','visitors','visits','chats','chat_messages','place_events','saved_places','enquiries','finder_runs','gems','gem_votes','season_alerts'] loop
     execute format('alter table hg.%I enable row level security', t);
+    -- The backend's login (hg_app, see above) may use every table, including ones added later.
+    if exists (select 1 from pg_roles where rolname = 'hg_app') then
+      execute format('grant select, insert, update, delete on hg.%I to hg_app', t);
+      if not exists (select 1 from pg_policies where schemaname = 'hg' and tablename = t and policyname = 'hg_app_all') then
+        execute format('create policy hg_app_all on hg.%I for all to hg_app using (true) with check (true)', t);
+      end if;
+    end if;
   end loop;
+  if exists (select 1 from pg_roles where rolname = 'hg_app') then
+    execute 'grant usage, select on all sequences in schema hg to hg_app';
+  end if;
   if exists (select 1 from pg_roles where rolname = 'anon') then
     execute 'revoke all on schema hg from anon, authenticated';
     execute 'revoke all on all tables in schema hg from anon, authenticated';

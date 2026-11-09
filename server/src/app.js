@@ -78,6 +78,7 @@ function createApp() {
 
   api.use(require('./routes/auth'));
   api.use(require('./routes/visitors'));
+  api.use(require('./routes/features'));
   api.use('/admin', require('./routes/admin'));
 
   api.use((req, res) => fail(res, 404, 'not_found'));

@@ -106,7 +106,7 @@ main{padding-block:28px 72px}
 /* Stat tiles */
 .stats{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:16px}
 @media (min-width:760px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (min-width:1100px){.stats{grid-template-columns:repeat(6,minmax(0,1fr))}}
+
 .stat{padding:16px 18px;display:grid;gap:4px;align-content:start}
 .stat-label{font-size:13.5px;color:var(--ink-2)}
 .stat-value{font-weight:650;font-size:30px;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
@@ -190,5 +190,8 @@ td small{display:block;font-size:12.5px;margin-top:2px}
 .enq-msg{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .enq-meta{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--ink-3)}
 .enq select{height:34px;width:auto}
+.row-actions{display:flex;flex-wrap:wrap;gap:6px}
+.enq-top strong .pill{margin-left:6px;vertical-align:2px}
+.enq-meta a{color:inherit}
 
 .loading{opacity:.55;transition:opacity .2s}

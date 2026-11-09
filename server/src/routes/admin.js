@@ -38,7 +38,12 @@ router.get('/overview', ah(async (req, res) => {
       (select count(*) from hg.chat_messages where role = 'user')::int as questions,
       (select count(*) from hg.chat_messages where role = 'user' and created_at > now() - interval '7 days')::int as questions_7d,
       (select count(*) from hg.saved_places)::int as saved,
-      (select count(*) from hg.enquiries where status = 'new')::int as new_enquiries`),
+      (select count(*) from hg.enquiries where status = 'new')::int as new_enquiries,
+      (select count(*) from hg.finder_runs)::int as finder_runs,
+      (select count(*) from hg.finder_runs where created_at > now() - interval '7 days')::int as finder_7d,
+      (select count(*) from hg.season_alerts where confirmed_at is not null and stopped_at is null)::int as reminders,
+      (select count(*) from hg.gems where status = 'pending')::int as gems_pending,
+      (select count(*) from hg.gems where status = 'approved')::int as gems_approved`),
     db.many(`select to_char(d, 'YYYY-MM-DD') as day, coalesce(n, 0)::int as visits
       from generate_series((now() at time zone $1)::date - 13, (now() at time zone $1)::date, interval '1 day') d
       left join (select (created_at at time zone $1)::date as day, count(*) as n from hg.visits
@@ -154,6 +159,65 @@ router.patch('/enquiries/:id', ah(async (req, res) => {
   const row = await db.one(`update hg.enquiries set status = $2 where id = $1 returning id, status`, [req.params.id, status]);
   if (!row) return fail(res, 404, 'not_found');
   res.json(row);
+}));
+
+/* ---------- Traveller gems: approve before they appear on the site ---------- */
+const GEM_STATUS = ['pending', 'approved', 'rejected'];
+router.get('/gems', ah(async (req, res) => {
+  const status = GEM_STATUS.includes(req.query.status) ? req.query.status : '';
+  const rows = await db.many(
+    `select g.*, v.country, v.city from hg.gems g left join hg.visitors v on v.id = g.visitor_id
+     where ($1 = '' or g.status = $1) order by g.created_at desc limit 200`, [status]);
+  res.json({ rows });
+}));
+
+router.patch('/gems/:id', ah(async (req, res) => {
+  const status = (req.body || {}).status;
+  if (!UUID.test(req.params.id) || !GEM_STATUS.includes(status)) return fail(res, 400, 'bad_request');
+  const row = await db.one(
+    `update hg.gems set status = $2, reviewed_at = case when $2 = 'pending' then null else now() end where id = $1 returning id, status`,
+    [req.params.id, status]);
+  if (!row) return fail(res, 404, 'not_found');
+  res.json(row);
+}));
+
+router.delete('/gems/:id', ah(async (req, res) => {
+  if (!UUID.test(req.params.id)) return fail(res, 404, 'not_found');
+  const row = await db.one(`delete from hg.gems where id = $1 returning id`, [req.params.id]);
+  if (!row) return fail(res, 404, 'not_found');
+  res.status(204).end();
+}));
+
+/* ---------- Gem Finder: what people look for, and what it suggests ---------- */
+router.get('/finder', ah(async (req, res) => {
+  const [counts, months, landscapes, efforts, budgets, results, recent] = await Promise.all([
+    db.one(`select count(*)::int as runs, count(*) filter (where created_at > now() - interval '7 days')::int as runs_7d,
+              count(distinct visitor_id)::int as people from hg.finder_runs`),
+    db.many(`select month, count(*)::int as n from hg.finder_runs where month is not null group by 1 order by 1`),
+    db.many(`select landscape as label, count(*)::int as n from hg.finder_runs where landscape is not null group by 1 order by 2 desc`),
+    db.many(`select effort as level, count(*)::int as n from hg.finder_runs where effort is not null group by 1 order by 1`),
+    db.many(`select budget as level, count(*)::int as n from hg.finder_runs where budget is not null group by 1 order by 1`),
+    db.many(`select results[1] as slug, count(*)::int as n from hg.finder_runs group by 1 order by 2 desc limit 9`),
+    db.many(`select f.month, f.landscape, f.effort, f.budget, f.results, f.created_at, f.visitor_id, v.country, v.city, u.name as user_name
+             from hg.finder_runs f join hg.visitors v on v.id = f.visitor_id left join hg.users u on u.id = f.user_id
+             order by f.created_at desc limit 40`)
+  ]);
+  res.json({ counts, months, landscapes, efforts, budgets, results, recent });
+}));
+
+/* ---------- Season reminders, per place ---------- */
+router.get('/reminders', ah(async (req, res) => {
+  const [byPlace, recent] = await Promise.all([
+    db.many(`select place_slug as slug,
+               count(*) filter (where confirmed_at is not null and stopped_at is null)::int as active,
+               count(*) filter (where confirmed_at is null and stopped_at is null)::int as waiting,
+               count(*) filter (where stopped_at is not null)::int as stopped,
+               max(last_sent_at) as last_sent
+             from hg.season_alerts group by 1 order by 2 desc`),
+    db.many(`select email, place_slug as slug, created_at, confirmed_at, stopped_at, last_sent_at
+             from hg.season_alerts order by created_at desc limit 50`)
+  ]);
+  res.json({ byPlace, recent });
 }));
 
 router.get('/chats/:id', ah(async (req, res) => {

@@ -26,6 +26,9 @@ export default function Overview({ status, onOpenTab }) {
         <StatTile label="Questions asked" value={c.questions} sub={`${n(c.questions_7d)} in the last 7 days`} />
         <StatTile label="Places saved" value={c.saved} />
         <StatTile label="New enquiries" value={c.new_enquiries} sub={c.new_enquiries ? 'Waiting for a reply' : 'All answered'} />
+        <StatTile label="Gem Finder used" value={c.finder_runs} sub={`${n(c.finder_7d)} in the last 7 days`} />
+        <StatTile label="Season reminders on" value={c.reminders} sub="Emailed when a place comes into season" />
+        <StatTile label="Traveller gems" value={c.gems_approved} sub={c.gems_pending ? `${n(c.gems_pending)} waiting for review` : 'On the site; none waiting'} />
       </div>
       <div className="grid wide" style={{ marginBottom: 16 }}>
         <Card title="Visits per day" aside={`Last 14 days · ${status ? status.timezone : ''}`}>

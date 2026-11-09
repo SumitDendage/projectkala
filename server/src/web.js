@@ -19,6 +19,7 @@ function createWebApp() {
   });
 
   app.use(chat);
+  app.use(require('./placeinfo'));
 
   app.get(['/admin', '/admin/'], (req, res) => {
     res.set('Cache-Control', 'no-cache');

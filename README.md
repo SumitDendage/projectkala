@@ -1,6 +1,6 @@
 # India's Hidden Gems
 
-An AI travel consultant for India's quieter places: an Apple-style scrolling site with 3D effects in a light, soft palette, ready-made trip ideas and an FAQ, accounts with email codes, an AI consultant answered by Claude, and a React admin dashboard. It runs as **one Node.js app**, made for **Hostinger**.
+An AI travel consultant for India's quieter places: an Apple-style scrolling site with 3D effects in a light, soft palette; an AI consultant answered by Claude that shows a photo, a map and directions for every place it suggests; Gem Finder (a four-question match); traveller gems (places shared by visitors, approved by you); season reminders by email; an FAQ; accounts with email codes; and a React admin dashboard. It runs as **one Node.js app**, made for **Hostinger**.
 
 ## Files
 
@@ -12,7 +12,7 @@ An AI travel consultant for India's quieter places: an Apple-style scrolling sit
 | `site/bg-video.mp4`, `site/poster.jpg` | The hero video, plus a poster frame shown while it loads |
 | `site/admin/` | The React admin dashboard at `/admin` (generated from `admin/`) |
 | `admin/` | The React source of the admin dashboard (Vite) |
-| `server/src/` | The Node.js + Express backend: accounts, visitors, questions, saved places, enquiries, and the AI chat |
+| `server/src/` | The Node.js + Express backend: accounts, visitors, questions, saved places, enquiries, Gem Finder, traveller gems, season reminders (`reminders.js`, the hourly email job), place photos (`placeinfo.js`) and the AI chat (`chat.js`) |
 | `server/schema.sql` | The database tables (already created in Supabase, schema `hg`) |
 | `vendor/`, `fonts/` | Self-hosted libraries and fonts (SIL Open Font License), so the site never waits on a CDN |
 | `build.py` | Rebuilds `site/index.html` and the dashboard |
@@ -37,6 +37,8 @@ An AI travel consultant for India's quieter places: an Apple-style scrolling sit
    | `SITE_URL` | Your address, e.g. `https://yourdomain.com` | Links in emails |
 
    Optional: `CHAT_MODEL` (default `claude-opus-5-5`; for example `claude-sonnet-5-5` or `claude-haiku-5-5` cost less per question), `CHAT_EFFORT` (default `low`), `TRUST_PROXY` (proxy hops in front of the app, default `1`).
+
+   `SITE_URL` also switches on season reminder emails (they need your address for their links). Optional: `REPORT_TZ` (the time zone for months and reports, default `Asia/Kolkata`), `REMINDERS=off` (stops the hourly reminder job). The server needs outgoing access to `api.anthropic.com`, `api.brevo.com` and `en.wikipedia.org` (place photos); visitors' browsers load maps from `www.openstreetmap.org`. Hostinger allows all of these.
 4. Deploy, then connect your domain and turn on SSL (HTTPS is required: sign-in cookies only work over HTTPS).
 5. Check: open `https://yourdomain.com/api/v1/health?check=db`. It should say `"databaseReachable":true`; if not, `databaseProblem` says what to fix (wrong password, wrong pooler address, or a blocked port: then use port `5432` instead of `6543` in `DATABASE_URL`).
 
@@ -46,13 +48,21 @@ After changing a variable, restart the app in hPanel. Hostinger gives the app it
 
 ## Edit
 
-1. Change `src/page.html` (the site), `admin/src/` (the dashboard) or `server/src/` (the backend). Trip ideas are the `#trips` section of `src/page.html`; FAQ answers are the `#faq` section, and its `application/ld+json` block must say the same thing.
+1. Change `src/page.html` (the site), `admin/src/` (the dashboard) or `server/src/` (the backend). FAQ answers are the `#faq` section of `src/page.html`, and its `application/ld+json` block must say the same thing.
 2. Run `python3 build.py` (needs Node.js 18 or newer) if you changed the site or the dashboard.
 3. Commit and push to `main`; redeploy the app in hPanel (or turn on automatic deploys there).
 
 ## The AI consultant
 
 The chat on the site sends each question, with the conversation so far, to `/api/chat` on your own server, which asks Claude through the official Anthropic SDK and streams the answer back word by word. It has a fixed brief: quieter places in India only, practical details (best months, getting there, permits, budget in rupees), under 250 words. Each IP address can ask 40 questions an hour. If Claude's safety filters decline a question, the server-side fallback retries it on another Claude model; anything still declined gets a polite reply. Without `ANTHROPIC_API_KEY` the chat says the consultant didn't answer, and everything else keeps working.
+
+**Photos and maps.** When the consultant suggests places, it ends its answer with a small hidden list of them (name, state, coordinates and Wikipedia title). The page shows, under the answer, one tab per place with:
+- a photo: the site's own photo for the nine places in the 3D ring, otherwise a freely licensed photo from Wikimedia Commons, credited and linked;
+- a short description from the site or Wikipedia;
+- a live OpenStreetMap map with a marker, plus "Directions in Google Maps", a bigger map and the Wikipedia article;
+- "Remind me in season" for the ring places.
+
+Your server looks the places up on Wikipedia (`/api/place-info`, cached for a day) and ignores anything outside India, so a wrong match never shows a wrong photo. Saved chats show the photos and maps again; the admin shows answers without the hidden list.
 
 Every question costs a little on your Anthropic account; set a monthly spend limit in the Anthropic Console.
 
@@ -69,6 +79,9 @@ The **Node.js + Express** backend answers at `/api/v1/*` and keeps everything in
 | What they ask (their searches) | `hg.chats`, `hg.chat_messages` | Every question to the AI consultant with its answer. Visitors can reopen their own chats ("Your chats"). |
 | Places viewed and saved | `hg.place_events`, `hg.saved_places` | A view counts once a place stays in front of the 3D ring for 1.5 seconds. Saves need an account. |
 | Trip enquiries | `hg.enquiries` | From the form at the bottom of the site. The first admin gets an email for each new one. |
+| Gem Finder | `hg.finder_runs` | Each time someone uses it: the month, landscape, effort and budget they picked, and the three places it suggested. |
+| Traveller gems | `hg.gems`, `hg.gem_votes` | Places visitors share (place, state, why it's special, best months, a first name, an optional email that's never shown). They appear on the site only after you approve them. "Want to go" marks: one per browser. The first admin gets an email for each new gem. |
+| Season reminders | `hg.season_alerts` | Email, place, when it was confirmed, stopped and last sent. Only a hash of the confirmation link is kept. |
 
 **Accounts on the site** (the window opens after the loading animation; also Sign in at the top right, or Save on a place):
 - **After loading:** visitors who aren't signed in see the window once per visit: Create account on a new device, Sign in on one that has signed in before. "Continue without an account" closes it, so the site and AI chat stay open to everyone.
@@ -82,7 +95,15 @@ The **Node.js + Express** backend answers at `/api/v1/*` and keeps everything in
 **The admin dashboard** is at `/admin` (React). Sign in with an account whose email is in `ADMIN_EMAILS` and has been confirmed. It shows:
 - **Overview:** visitors, visits in the last 24 hours, accounts, questions, saved places, new enquiries, visits per day, countries, devices, latest questions and most viewed places.
 - **Visitors:** every browser, with location and device; open one to see each visit, every question with its answer, and every place viewed or saved.
-- **Accounts**, **Questions** (searchable, with answers), **Places** and **Enquiries** (mark new, contacted or closed).
+- **Accounts**, **Questions** (searchable, with answers), **Places** (with season reminders per place) and **Enquiries** (mark new, contacted or closed).
+- **Gem Finder:** how often it's used, the months, landscapes, effort and budgets people pick, the best matches it gave, and the latest runs.
+- **Traveller gems:** approve, reject, take down or delete shared places. The tab shows how many are waiting.
+
+## Gem Finder, traveller gems and season reminders
+
+- **Gem Finder** (after Places): four questions (when, what landscape, how active, daily budget). It ranks the places in the 3D ring by best months, landscape, effort and a rough budget, and shows the top three with the reasons, "Plan it with the consultant" (asks with the answers filled in) and "Remind me". It works on the Claude version too.
+- **Traveller gems** (after Travel well): visitors share a quiet place through "Share a hidden gem". You approve it in the admin, then it shows on the site with "Want to go" and "Ask about it". At most 5 shares an hour from one connection.
+- **Season reminders:** "Remind me" in the 3D ring panel, on Gem Finder matches and under the consultant's photos. The visitor confirms by email (or straight away if signed in with that confirmed email). Then the hourly job emails once a year as the place's best months begin, with a link that plans the trip and a link that stops the reminders. At most 5 confirmation emails a day to one address.
 
 Until `DATABASE_URL` is set, the site still shows the sign-in window after loading, but it answers "Accounts are almost ready", and the enquiry form stays hidden. If the backend is ever unreachable, the page keeps working without accounts, saving or the enquiry form.
 
@@ -105,14 +126,14 @@ The same page also runs on claude.ai: https://claude.ai/artifact/DQeCi7JuR84A7sQ
 - **It's the same file.** `src/page.html` notices when it runs inside Claude and switches over by itself. To update it, publish `src/page.html` again with the photos (`site/places/*.jpg`), `site/poster.jpg` and `site/bg-video.mp4` as files.
 - **The AI consultant is Claude.** Each visitor's questions use their own Claude account; the first question asks them to allow it.
 - **Accounts are Claude accounts.** There's no sign-up window, password or email code there. You, and anyone you give Contributor or Editor access, can save places and keep chats; they're private to each person. Visitors with view-only or public-link access can still read the site and chat with Claude, but can't save.
-- **Not on the Claude version:** the enquiry form, visitor tracking and the admin dashboard. Those need the Hostinger site.
+- **Not on the Claude version:** the enquiry form, visitor tracking, traveller gems, season reminders, embedded maps (the photo cards link to Google Maps and OpenStreetMap instead) and the admin dashboard. Those need the Hostinger site. Gem Finder works there.
 
 ## What changed from the original
 
-- **Structure.** The site was one fixed screen. It's now nine sections, each with one job: hero, why it exists, places, trip ideas, how it works, when to go, the consultant, travel well, and questions. A sticky nav changes colour to match the section under it and shows scroll progress.
+- **Structure.** The site was one fixed screen. It's now ten sections, each with one job: hero, why it exists, places, Gem Finder, how it works, when to go, the consultant, travel well, traveller gems, and questions. A sticky nav changes colour to match the section under it and shows scroll progress.
 - **Colours.** A light, soft palette: misty sage and white bands, deep green-ink text, a saffron accent and teal lines on the 3D terrain and footer. Only the hero keeps its dark film, with light text. Every text colour passes WCAG AA contrast (4.5:1).
-- **Trip ideas.** Four ready-made routes (Meghalaya, Spiti, Tawang and Kerala), each with the best months, a rough daily budget, the effort, permits where needed and a day-by-day plan. "Plan this trip" asks the consultant; "Send an enquiry" fills in the enquiry form. Below them, a short "Before you go" checklist. Budgets are labelled as estimates.
-- **Questions.** An FAQ on cost, accuracy, permits, seasons, the monsoon, accounts, enquiries and data, with matching FAQPage structured data for search engines. Answers about accounts, enquiries and data are hidden on the Claude version, where they don't apply.
+- **The consultant shows places.** The static trip ideas were replaced by the consultant itself: every answer that suggests places now comes with photos, maps and directions (see "The AI consultant").
+- **Questions.** An FAQ on cost, accuracy, permits, seasons, the monsoon, accounts, season reminders, sharing a place, enquiries and data, with matching FAQPage structured data for search engines. Answers about accounts, reminders, sharing, enquiries and data are hidden on the Claude version, where they don't apply.
 - **3D and motion.** The hero video shrinks and tilts back into a card as you scroll. A live Three.js ridge-line terrain flies under the statement while its words light up. Places is a pinned 3D ring (below). A 3D device turns as the "How it works" steps change it. The chat panel swings up from a tilted plane. Smooth scrolling uses Lenis, choreography uses GSAP ScrollTrigger.
 - **Chat.** Stop, New chat and Try again, and markdown that's sanitised before it renders. Suggestion chips, place cards and calendar months all start a conversation.
 - **Fixes.** One `<h1>` instead of two, real meta and Open Graph tags, a labelled textarea and send button, a skip link, a pause control for the video, `prefers-reduced-motion` support (static layout, video paused) and no horizontal scroll on phones.
@@ -125,7 +146,7 @@ I studied that template's motion and wrote my own versions of it for this site. 
 - **Intro loader.** Place covers orbit a 0 to 100 counter, then vertical blinds open onto the hero. It plays once per browser tab session and is skipped when reduced motion is on.
 - **Masked headline.** The hero headline rises out of a mask when the loader lifts.
 - **Line-by-line reveals** for section headings and leads.
-- **Rise-in cards.** Trip ideas, the checklist and the FAQ answers fade up as they come into view (a small separate script, so the scroll film above is unchanged), and plans and answers open smoothly.
+- **Rise-in cards.** Gem Finder, traveller gems and the FAQ answers fade up as they come into view (a small separate script, so the scroll film above is unchanged), and FAQ answers open smoothly. Gem Finder matches and the consultant's photo cards slide in.
 - **Letter scramble** on nav links, footer links and button labels when you hover them.
 
 ## Libraries

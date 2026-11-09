@@ -5,4 +5,7 @@
 const { createWebApp } = require('./web');
 
 const port = Number(process.env.PORT) || 8787;
-createWebApp().listen(port, '127.0.0.1', () => console.log(`India's Hidden Gems running at http://localhost:${port}`));
+createWebApp().listen(port, '127.0.0.1', () => {
+  console.log(`India's Hidden Gems running at http://localhost:${port}`);
+  require('./reminders').start();
+});

@@ -26,7 +26,12 @@ const SYSTEM = [
   'any permits needed (for example Inner Line Permits in parts of the North East), and a rough daily budget in Indian rupees.',
   'Write in Markdown with short paragraphs or lists, under 250 words unless the visitor asks for more.',
   'If you are not sure about road conditions, permits, prices or opening times, say so and suggest checking locally before travelling.',
-  `Places featured on the site: ${PLACES.join('; ')}.`
+  `Places featured on the site: ${PLACES.join('; ')}.`,
+  // The site turns this block into photo cards and a map under the answer; visitors never see the JSON.
+  'When your answer suggests specific places, end it with one fenced code block whose language is "places", holding a JSON array',
+  'of up to three objects in the order you described them: {"name": "Ziro", "state": "Arunachal Pradesh", "lat": 27.54, "lon": 93.83, "wiki": "Ziro"}.',
+  'Use the decimal coordinates of the place itself and its exact English Wikipedia article title as "wiki" (null if there is none).',
+  'Write nothing after the block and never mention it.'
 ].join(' ');
 
 let client = null;

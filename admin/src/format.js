@@ -32,8 +32,10 @@ export function ago(t) {
   return date(t);
 }
 
-// AI answers are Markdown; show them as plain readable text.
+// AI answers are Markdown; show them as plain readable text. The ```places block at the end (photos and
+// maps on the site) is left out.
 export const plain = s => String(s || '')
+  .replace(/\n*```places[\s\S]*?(?:```|$)/g, '')
   .replace(/\[([^\]]+)\]\((?:[^)]+)\)/g, '$1')
   .replace(/^#{1,6}\s+/gm, '')
   .replace(/(\*\*|__)(.+?)\1/g, '$2')
