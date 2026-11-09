@@ -28,7 +28,7 @@ function cleanReferrer(ref, req) {
 router.post('/visit', ah(async (req, res) => {
   const b = req.body || {};
   const vid = v.visitorId(req, res);
-  const ua = v.parseUserAgent(req.get('user-agent')), geo = v.geoFrom(req);
+  const ua = v.parseUserAgent(req.get('user-agent')), geo = v.geoFrom(req, b.timezone);
   const row = await db.one(
     `with prev as (select max(created_at) as last from hg.visits where visitor_id = $1),
      fresh as (select (select last from prev) is null or (select last from prev) < now() - interval '30 minutes' as yes),

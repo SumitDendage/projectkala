@@ -1,4 +1,4 @@
-// Settings come from environment variables (Netlify → Site configuration → Environment variables).
+// Settings come from environment variables (Hostinger: your Node.js app → Environment variables).
 const env = process.env;
 const list = v => String(v || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 

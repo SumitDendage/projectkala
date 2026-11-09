@@ -47,24 +47,36 @@ function parseUserAgent(ua) {
   return { device, browser, os };
 }
 
-// Netlify adds the visitor's approximate location as a base64 JSON header.
-function geoFrom(req) {
+// Rough location. A CDN in front of the site (Cloudflare) adds the visitor's country and city as
+// headers; without one, the browser's time zone gives the country. No IP address is stored.
+const ZONES = {
+  'Asia/Kolkata': 'India', 'Asia/Calcutta': 'India', 'Asia/Kathmandu': 'Nepal', 'Asia/Dhaka': 'Bangladesh',
+  'Asia/Colombo': 'Sri Lanka', 'Asia/Karachi': 'Pakistan', 'Asia/Thimphu': 'Bhutan', 'Asia/Dubai': 'United Arab Emirates',
+  'Asia/Qatar': 'Qatar', 'Asia/Riyadh': 'Saudi Arabia', 'Asia/Muscat': 'Oman', 'Asia/Kuwait': 'Kuwait', 'Asia/Bahrain': 'Bahrain',
+  'Asia/Singapore': 'Singapore', 'Asia/Kuala_Lumpur': 'Malaysia', 'Asia/Bangkok': 'Thailand', 'Asia/Jakarta': 'Indonesia',
+  'Asia/Manila': 'Philippines', 'Asia/Hong_Kong': 'Hong Kong', 'Asia/Shanghai': 'China', 'Asia/Tokyo': 'Japan', 'Asia/Seoul': 'South Korea',
+  'Europe/London': 'United Kingdom', 'Europe/Dublin': 'Ireland', 'Europe/Paris': 'France', 'Europe/Berlin': 'Germany',
+  'Europe/Madrid': 'Spain', 'Europe/Rome': 'Italy', 'Europe/Amsterdam': 'Netherlands', 'Europe/Zurich': 'Switzerland',
+  'Europe/Stockholm': 'Sweden', 'Europe/Moscow': 'Russia', 'America/New_York': 'United States', 'America/Chicago': 'United States',
+  'America/Denver': 'United States', 'America/Phoenix': 'United States', 'America/Los_Angeles': 'United States',
+  'America/Toronto': 'Canada', 'America/Vancouver': 'Canada', 'America/Sao_Paulo': 'Brazil', 'America/Mexico_City': 'Mexico',
+  'Australia/Sydney': 'Australia', 'Australia/Melbourne': 'Australia', 'Australia/Perth': 'Australia', 'Australia/Brisbane': 'Australia',
+  'Pacific/Auckland': 'New Zealand', 'Africa/Johannesburg': 'South Africa', 'Africa/Nairobi': 'Kenya', 'Africa/Lagos': 'Nigeria'
+};
+function geoFrom(req, timezone) {
   const out = { country: null, region: null, city: null };
-  const raw = req.get('x-nf-geo');
-  if (raw) {
-    try {
-      const g = JSON.parse(Buffer.from(raw, 'base64').toString('utf8'));
-      out.country = (g.country && (g.country.name || g.country.code)) || null;
-      out.region = (g.subdivision && (g.subdivision.name || g.subdivision.code)) || null;
-      out.city = g.city || null;
-    } catch (e) { /* no location */ }
+  const cc = req.get('cf-ipcountry');
+  if (cc && /^[A-Z]{2}$/.test(cc) && cc !== 'XX' && cc !== 'T1') {
+    try { out.country = new Intl.DisplayNames(['en'], { type: 'region' }).of(cc) || cc; } catch (e) { out.country = cc; }
+    out.region = req.get('cf-region') || null;
+    out.city = req.get('cf-ipcity') || null;
   }
-  if (!out.country && req.get('x-country')) out.country = req.get('x-country');
+  if (!out.country && typeof timezone === 'string' && ZONES[timezone]) out.country = ZONES[timezone];
   for (const k of Object.keys(out)) out[k] = out[k] ? String(out[k]).slice(0, 80) : null;
   return out;
 }
 
-const clientIp = req => req.get('x-nf-client-connection-ip') || req.ip || 'unknown';
+const clientIp = req => req.ip || 'unknown';
 
 /* ---------- The anonymous visitor id (one per browser, kept in an HttpOnly cookie) ---------- */
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

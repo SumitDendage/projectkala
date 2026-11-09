@@ -16,7 +16,7 @@ export default function Overview({ status, onOpenTab }) {
       </div>
       {status && !status.mail && (
         <div className="callout" role="status">
-          <strong>Emails are off.</strong> Password reset and email confirmation need an email service. Add <code>BREVO_API_KEY</code> (and <code>MAIL_FROM</code>, a sender verified in Brevo) in Netlify, then deploy again.
+          <strong>Emails are off.</strong> Password reset and email confirmation need an email service. Add <code>BREVO_API_KEY</code> (and <code>MAIL_FROM</code>, a sender verified in Brevo) to your Node.js app’s environment variables on Hostinger, then restart the app.
         </div>
       )}
       <div className="stats">

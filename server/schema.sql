@@ -157,7 +157,7 @@ create index if not exists enquiries_created_idx on hg.enquiries (created_at des
 --   grant select, insert, update, delete on all tables in schema hg to hg_app;
 --   grant usage, select on all sequences in schema hg to hg_app;
 --   and, on every table: create policy hg_app_all on hg.<table> for all to hg_app using (true) with check (true);
--- Its password lives only in Netlify's DATABASE_URL.
+-- Its password lives only in the DATABASE_URL setting on the host (Hostinger).
 
 -- ---------- Lock it down ----------
 -- Row level security with no policies: even if this schema were ever exposed through the

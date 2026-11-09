@@ -90,7 +90,7 @@ function NotAdmin({ me, onRecheck, onSignOut }) {
   return (
     <section className="gate">
       <h1>Not an <em>admin</em></h1>
-      <p><strong>{me.email}</strong> isn’t an admin. Add it to <code>ADMIN_EMAILS</code> in Netlify (Site configuration → Environment variables), deploy again, then sign in.</p>
+      <p><strong>{me.email}</strong> isn’t an admin. Add it to <code>ADMIN_EMAILS</code> in your Node.js app’s environment variables on Hostinger, restart the app, then sign in.</p>
       <div className="gate-row"><button className="btn primary" type="button" onClick={onSignOut}>Use another account</button></div>
     </section>
   );
@@ -99,7 +99,7 @@ function NotAdmin({ me, onRecheck, onSignOut }) {
 const Setup = () => (
   <section className="gate">
     <h1>Almost <em>ready</em></h1>
-    <p>The backend is running, but its database isn’t connected yet. In Netlify, open Site configuration → Environment variables and add <code>DATABASE_URL</code> (from Supabase → Connect → Transaction pooler), then deploy again.</p>
+    <p>The backend is running, but its database isn’t connected yet. In Hostinger, open your Node.js app’s environment variables and add <code>DATABASE_URL</code> (from Supabase → Connect → Transaction pooler), then deploy again.</p>
   </section>
 );
 

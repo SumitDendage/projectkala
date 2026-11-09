@@ -1,5 +1,5 @@
 /* India's Hidden Gems backend (Node.js + Express).
-   Mounted at /api/v1 on the site. Runs locally (src/local.js) and on Netlify Functions (netlify/api.js). */
+   Mounted at /api/v1 on the site. Started by server.js (production) or local.js (your computer). */
 const express = require('express');
 const config = require('./config');
 const db = require('./db');
@@ -11,7 +11,8 @@ const { ah, fail } = require('./http');
 function createApp() {
   const app = express();
   app.disable('x-powered-by');
-  app.set('trust proxy', true);
+  // Behind the host's proxy (Hostinger, Nginx): trust that many hops for the visitor's IP and HTTPS.
+  app.set('trust proxy', Number(process.env.TRUST_PROXY || 1));
 
   const api = express.Router();
 
@@ -87,9 +88,7 @@ function createApp() {
     return fail(res, 500, 'server_error');
   });
 
-  // On Netlify the function may see either the public path or its own path.
   app.use('/api/v1', api);
-  app.use('/.netlify/functions/api', api);
   return app;
 }
 

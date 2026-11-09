@@ -4,14 +4,14 @@
 1. site/index.html: src/page.html (a body fragment: title, meta and <style> first, then
    markup and scripts) wrapped into a full page with SEO / social meta.
 2. site/admin/: the React admin dashboard (admin/, built with Vite).
-3. server/dist/api.zip: the Node.js + Express backend bundled as a Netlify Function.
 
-Usage:  python3 build.py        (needs Node.js 18+ for steps 2 and 3)
+The backend (server/) needs no build: `npm start` runs it and serves site/.
+
+Usage:  python3 build.py        (needs Node.js 18+ for step 2)
 """
 import re
 import shutil
 import subprocess
-import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -84,7 +84,6 @@ def main() -> None:
     OUT.write_text(html, encoding="utf-8")
     print(f"wrote {OUT.relative_to(ROOT)} ({len(html):,} bytes)")
     build_admin()
-    build_function()
 
 
 def npm(folder: Path, *args: str) -> None:
@@ -97,20 +96,6 @@ def build_admin() -> None:
     """React admin dashboard -> site/admin (served at /admin)."""
     npm(ROOT / "admin", "run", "build", "--silent")
     print("wrote site/admin/ (React admin dashboard)")
-
-
-def build_function() -> None:
-    """Express backend -> one bundled file, zipped the way Netlify Functions expect."""
-    server = ROOT / "server"
-    npm(server, "run", "build", "--silent")
-    bundle = server / "dist" / "functions" / "api.js"
-    out = server / "dist" / "api.zip"
-    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-        info = zipfile.ZipInfo("api.js", date_time=(2020, 1, 1, 0, 0, 0))  # fixed time: same code, same zip
-        info.compress_type = zipfile.ZIP_DEFLATED
-        info.external_attr = 0o644 << 16
-        z.writestr(info, bundle.read_bytes())
-    print(f"wrote {out.relative_to(ROOT)} ({out.stat().st_size:,} bytes, Netlify Function 'api')")
 
 
 if __name__ == "__main__":

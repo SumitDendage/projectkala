@@ -25,7 +25,7 @@ export const ERRORS = {
   missing_fields: 'Enter your email and password.',
   invalid_email: 'Enter a valid email address.',
   too_many: 'Too many attempts. Wait a few minutes and try again.',
-  mail_not_configured: 'Emails aren’t switched on yet (add BREVO_API_KEY in Netlify).',
+  mail_not_configured: 'Emails aren’t switched on yet (add BREVO_API_KEY on Hostinger).',
   not_configured: 'The database isn’t connected yet.',
   network: 'No connection. Check your internet and try again.'
 };
