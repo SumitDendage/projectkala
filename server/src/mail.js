@@ -6,25 +6,27 @@ const configured = () => !!(config.mailLog || (config.brevoKey && config.mailFro
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 // One simple, readable layout for every email.
-function layout({ heading, intro, button, link, outro }) {
+function layout({ heading, intro, code, button, link, outro }) {
   const html = `<!doctype html><html><body style="margin:0;background:#f1f3f2;font-family:Arial,Helvetica,sans-serif;color:#0c1014">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:16px;padding:32px">
 <tr><td style="font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#8f5100;padding-bottom:16px">India’s Hidden Gems</td></tr>
 <tr><td style="font-size:24px;font-weight:bold;padding-bottom:12px">${esc(heading)}</td></tr>
 <tr><td style="font-size:15px;line-height:1.6;color:#4b545d;padding-bottom:24px">${esc(intro)}</td></tr>
+${code ? `<tr><td style="padding-bottom:8px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#4b545d">Your code</td></tr>
+<tr><td style="padding-bottom:24px"><span style="display:inline-block;padding:14px 20px;border-radius:12px;background:#f1f3f2;font:bold 32px/1 'Courier New',monospace;letter-spacing:.3em;color:#0c1014">${esc(code)}</span></td></tr>` : ''}
 ${link ? `<tr><td style="padding-bottom:24px"><a href="${esc(link)}" style="display:inline-block;background:#f5a524;color:#07090c;text-decoration:none;font-weight:bold;padding:14px 22px;border-radius:999px">${esc(button)}</a></td></tr>
 <tr><td style="font-size:13px;line-height:1.6;color:#4b545d;padding-bottom:16px">Or open this link: <a href="${esc(link)}" style="color:#8f5100;word-break:break-all">${esc(link)}</a></td></tr>` : ''}
 <tr><td style="font-size:13px;line-height:1.6;color:#4b545d">${esc(outro || '')}</td></tr>
 </table></td></tr></table></body></html>`;
-  const text = [heading, '', intro, '', link ? `${button}: ${link}` : '', '', outro || ''].join('\n').trim();
+  const text = [heading, '', intro, '', code ? `Your code: ${code}` : '', '', link ? `${button}: ${link}` : '', '', outro || ''].join('\n').trim();
   return { html, text };
 }
 
 async function send({ to, subject, ...content }) {
   const { html, text } = layout(content);
   if (config.mailLog) {
-    fs.appendFileSync(config.mailLog, JSON.stringify({ to, subject, text, link: content.link || null, at: new Date().toISOString() }) + '\n');
+    fs.appendFileSync(config.mailLog, JSON.stringify({ to, subject, text, link: content.link || null, code: content.code || null, at: new Date().toISOString() }) + '\n');
     return;
   }
   if (!config.brevoKey || !config.mailFrom) throw new Error('mail_not_configured');
@@ -36,17 +38,17 @@ async function send({ to, subject, ...content }) {
   if (!res.ok) throw new Error(`Brevo answered ${res.status}: ${(await res.text()).slice(0, 200)}`);
 }
 
-const resetEmail = (to, name, link) => send({
-  to, subject: 'Reset your password',
-  heading: 'Choose a new password', intro: `Hi ${name}, we got a request to reset the password for your India’s Hidden Gems account. The link works for one hour.`,
-  button: 'Choose a new password', link,
+const resetEmail = (to, name, link, code) => send({
+  to, subject: `${code} is your password reset code`,
+  heading: 'Choose a new password', intro: `Hi ${name}, we got a request to reset the password for your India’s Hidden Gems account. Type this code on the site with your new password, or use the button. Both work for one hour.`,
+  code, button: 'Choose a new password', link,
   outro: 'If you didn’t ask for this, you can ignore this email. Your password won’t change.'
 });
 
-const verifyEmail = (to, name, link) => send({
-  to, subject: 'Confirm your email address',
-  heading: 'Confirm your email', intro: `Hi ${name}, welcome to India’s Hidden Gems. Confirm this is your email address so you can always get back into your account.`,
-  button: 'Confirm my email', link,
+const verifyEmail = (to, name, link, code) => send({
+  to, subject: `${code} is your India’s Hidden Gems code`,
+  heading: 'Confirm your email', intro: `Hi ${name}, welcome to India’s Hidden Gems. Type this code on the site to confirm your email and open your account, or use the button.`,
+  code, button: 'Confirm my email', link,
   outro: 'If you didn’t create an account, you can ignore this email.'
 });
 

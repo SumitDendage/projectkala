@@ -1,4 +1,5 @@
 /* Accounts: sign up, sign in, sign out, forgot and reset password, email confirmation. */
+const crypto = require('crypto');
 const express = require('express');
 const db = require('../db');
 const mail = require('../mail');
@@ -11,6 +12,10 @@ const SESSION_DAYS = 30;
 const LINK_HOURS = { reset: 1, verify: 48 };
 const password = b => (typeof b.password === 'string' ? b.password : '');
 const strongEnough = pw => pw.length >= 8 && pw.length <= 128;
+const MAX_CODE_TRIES = 5;
+const newCode = () => String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+const codeHash = (userId, code) => sec.sha256(`${userId}:${code}`);
+const cleanCode = v => String(v || '').replace(/\D/g, '');
 
 // Everything this browser did before signing in (chats, place views, enquiries) joins the account.
 async function linkVisitor(req, res, userId) {
@@ -40,16 +45,35 @@ async function startSession(req, res, user) {
   await linkVisitor(req, res, user.id);
 }
 
-// Email a one-time link (?reset=… or ?verify=…). Older unused links of the same kind stop working.
+// Email a one-time link (?reset=… or ?verify=…) and a 6-digit code (OTP) that does the same job.
+// Older unused links and codes of the same kind stop working.
 async function sendLink(req, user, purpose) {
-  const token = sec.newToken();
+  const token = sec.newToken(), code = newCode();
   await db.query(
     `with old as (update hg.tokens set used_at = now() where user_id = $2 and purpose = $3 and used_at is null)
-     insert into hg.tokens (token_hash, user_id, purpose, expires_at) values ($1, $2, $3, now() + make_interval(hours => $4))`,
-    [sec.sha256(token), user.id, purpose, LINK_HOURS[purpose]]);
+     insert into hg.tokens (token_hash, user_id, purpose, expires_at, code_hash) values ($1, $2, $3, now() + make_interval(hours => $4), $5)`,
+    [sec.sha256(token), user.id, purpose, LINK_HOURS[purpose], codeHash(user.id, code)]);
   const link = `${siteOrigin(req)}/?${purpose}=${token}`;
-  if (purpose === 'reset') await mail.resetEmail(user.email, user.name, link);
-  else await mail.verifyEmail(user.email, user.name, link);
+  if (purpose === 'reset') await mail.resetEmail(user.email, user.name, link, code);
+  else await mail.verifyEmail(user.email, user.name, link, code);
+}
+
+// Check a typed code against the user's latest unused one. Wrong tries are counted; after
+// MAX_CODE_TRIES the code is used up. Returns the token row, or an error name.
+async function useCode(c, userId, purpose, code) {
+  const t = (await c.query(
+    `select token_hash, code_hash, attempts from hg.tokens
+     where user_id = $1 and purpose = $2 and used_at is null and expires_at > now() and code_hash is not null
+     order by created_at desc limit 1 for update`, [userId, purpose])).rows[0];
+  if (!t || t.attempts >= MAX_CODE_TRIES) return { error: 'code_expired' };
+  if (code.length !== 6 || t.code_hash !== codeHash(userId, code)) {
+    const left = MAX_CODE_TRIES - t.attempts - 1;
+    await c.query(`update hg.tokens set attempts = attempts + 1, used_at = case when $2 then now() else used_at end where token_hash = $1`,
+      [t.token_hash, left <= 0]);
+    return { error: left <= 0 ? 'code_expired' : 'invalid_code', left };
+  }
+  await c.query(`update hg.tokens set used_at = now() where token_hash = $1`, [t.token_hash]);
+  return { ok: true };
 }
 
 router.get('/auth/me', (req, res) => res.json({ user: publicUser(req.user), mail: mail.configured() }));
@@ -114,16 +138,26 @@ router.post('/auth/forgot', ah(async (req, res) => {
 // From the emailed link: choose a new password. Signs out every other device, then signs in here.
 router.post('/auth/reset', ah(async (req, res) => {
   const b = req.body || {};
-  const token = text(b.token, 200), pw = password(b);
-  if (!token) return fail(res, 400, 'invalid_token');
+  const token = text(b.token, 200), pw = password(b), code = cleanCode(b.code), email = normEmail(b.email);
+  if (!token && !(code && validEmail(email))) return fail(res, 400, 'invalid_token');
   if (!strongEnough(pw)) return fail(res, 400, 'weak_password');
   if (await sec.limited([['reset-ip', v.clientIp(req), 30, 60]])) return fail(res, 429, 'too_many');
   const hash = await sec.hashPassword(pw);
+  let codeError = null;
   const user = await db.transaction(async c => {
-    const t = (await c.query(
-      `update hg.tokens set used_at = now()
-       where token_hash = $1 and purpose = 'reset' and used_at is null and expires_at > now() returning user_id`,
-      [sec.sha256(token)])).rows[0];
+    let t;
+    if (token) {
+      t = (await c.query(
+        `update hg.tokens set used_at = now()
+         where token_hash = $1 and purpose = 'reset' and used_at is null and expires_at > now() returning user_id`,
+        [sec.sha256(token)])).rows[0];
+    } else {
+      // Typed code: same answer for an unknown email as for an expired code.
+      const u = (await c.query(`select id from hg.users where email = $1`, [email])).rows[0];
+      const r = u ? await useCode(c, u.id, 'reset', code) : { error: 'code_expired' };
+      if (r.error) { codeError = r; return null; }
+      t = { user_id: u.id };
+    }
     if (!t) return null;
     // Opening the emailed link also proves the address, so it counts as confirmed.
     const u = (await c.query(
@@ -133,9 +167,22 @@ router.post('/auth/reset', ah(async (req, res) => {
     await c.query(`delete from hg.sessions where user_id = $1`, [u.id]);
     return u;
   });
+  if (codeError) return fail(res, 400, codeError.error, codeError.left > 0 ? { attemptsLeft: codeError.left } : {});
   if (!user) return fail(res, 400, 'invalid_token');
   await startSession(req, res, user);
   res.json({ user: publicUser(user) });
+}));
+
+// The 6-digit code from the confirmation email, typed in by the signed-in visitor.
+router.post('/auth/verify-code', ah(async (req, res) => {
+  if (!req.user) return fail(res, 401, 'sign_in');
+  if (req.user.email_verified_at) return res.json({ verified: true, user: publicUser(req.user) });
+  const code = cleanCode((req.body || {}).code);
+  if (await sec.limited([['verify-code-ip', v.clientIp(req), 30, 60]])) return fail(res, 429, 'too_many');
+  const r = await db.transaction(c => useCode(c, req.user.id, 'verify', code));
+  if (r.error) return fail(res, 400, r.error, r.left > 0 ? { attemptsLeft: r.left } : {});
+  const u = await db.one(`update hg.users set email_verified_at = coalesce(email_verified_at, now()) where id = $1 returning *`, [req.user.id]);
+  res.json({ verified: true, user: publicUser(u) });
 }));
 
 router.post('/auth/verify', ah(async (req, res) => {

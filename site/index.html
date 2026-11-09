@@ -555,6 +555,7 @@ button{font:inherit;color:inherit}
 .auth-row .auth-link{margin-left:auto}
 .auth-hint{margin:0;color:var(--fog);font-size:12.5px}
 .auth-submit{width:100%;height:50px}
+.field input.code-input{font:600 24px/1.2 var(--font-mono);letter-spacing:.42em;text-align:center;padding-left:calc(14px + .42em)}
 .auth-submit[aria-disabled="true"]{opacity:.7;cursor:progress}
 .auth-msg{margin:0;font-size:14px;line-height:1.5;color:var(--danger)}
 .auth-msg.ok{color:#7fd6a3}
@@ -593,6 +594,7 @@ button{font:inherit;color:inherit}
     <form id="authForm" novalidate>
       <label class="field" id="authNameField" hidden><span>Name</span><input id="authName" autocomplete="name" maxlength="100"></label>
       <label class="field" id="authEmailField"><span>Email</span><input id="authEmail" type="email" inputmode="email" autocomplete="email" maxlength="200" required></label>
+      <label class="field" id="authCodeField" hidden><span>6-digit code</span><input class="code-input" id="authCode" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="••••••"></label>
       <div class="field" id="authPwField">
         <label for="authPassword"><span>Password</span></label>
         <div class="pw"><input id="authPassword" type="password" autocomplete="current-password" minlength="8" maxlength="128" required><button class="pw-toggle" id="authPwToggle" type="button" aria-controls="authPassword" aria-pressed="false">Show</button></div>
@@ -600,6 +602,7 @@ button{font:inherit;color:inherit}
       <div class="auth-row" id="authRow">
         <p class="auth-hint" id="authHint" hidden>At least 8 characters.</p>
         <button class="auth-link" id="authForgot" type="button">Forgot password?</button>
+        <button class="auth-link" id="authResend" type="button" hidden>Send a new code</button>
       </div>
       <button class="btn btn-accent auth-submit" id="authSubmit" type="submit">Sign in</button>
       <p class="auth-msg" id="authMsg" role="alert"></p>
@@ -641,7 +644,7 @@ button{font:inherit;color:inherit}
       </button>
       <div class="account-menu" id="accountMenu" hidden>
         <p class="account-who" id="accountWho"></p>
-        <div class="account-verify" id="accountVerify" hidden>Please confirm your email address to secure your account.<button class="auth-link" id="accountResend" type="button">Resend the confirmation link</button></div>
+        <div class="account-verify" id="accountVerify" hidden>Please confirm your email address to secure your account.<button class="auth-link" id="accountResend" type="button">Enter the code from your email</button></div>
         <p class="account-h">Saved places</p>
         <ul class="account-saved" id="accountSaved"></ul>
         <div class="account-actions">
@@ -1181,7 +1184,7 @@ button{font:inherit;color:inherit}
       if (res.status === 204) return null;
       let data = null;
       try { data = await res.json(); } catch (e) { /* not JSON */ }
-      if (!res.ok) throw fail((data && data.error) || 'server_error', res.status);
+      if (!res.ok) throw Object.assign(fail((data && data.error) || 'server_error', res.status), { left: data && data.attemptsLeft });
       return data;
     }
     // state: 'ready' (everything works), 'setup' (backend up, database not connected yet) or 'off'.
@@ -1599,12 +1602,15 @@ button{font:inherit;color:inherit}
     /* The window: Sign in, Create account, Forgot password, and Choose a new password. */
     const authEl = $('#auth'), authForm = $('#authForm'), authMsg = $('#authMsg'), authSubmit = $('#authSubmit');
     const aName = $('#authName'), aEmail = $('#authEmail'), aPw = $('#authPassword');
-    let mode = 'in', afterAuth = null, lastFocus = null;
+    const aCode = $('#authCode');
+    let mode = 'in', afterAuth = null, lastFocus = null, codeEmail = '';
     const COPY = {
       in: { title: 'Welcome <em>back.</em>', sub: 'Sign in to save places and keep your chats on every device.', submit: 'Sign in' },
       up: { title: 'Create your <em>account.</em>', sub: 'Save places from the ring and pick up your chats on any device.', submit: 'Create account' },
       reset: { title: 'Reset your <em>password.</em>', sub: 'Enter the email you signed up with and we’ll send you a link to choose a new password.', submit: 'Send reset link' },
-      newpw: { title: 'Choose a new <em>password.</em>', sub: 'Pick a new password for your account. You’ll be signed in straight after.', submit: 'Save new password' }
+      newpw: { title: 'Choose a new <em>password.</em>', sub: 'Pick a new password for your account. You’ll be signed in straight after.', submit: 'Save new password' },
+      code: { title: 'Check your <em>email.</em>', sub: 'We sent a 6-digit code to {email}. Type it here to confirm your account.', submit: 'Confirm my email' },
+      resetcode: { title: 'Enter your <em>code.</em>', sub: 'If {email} has an account, we emailed it a 6-digit code. Type it here with a new password.', submit: 'Save new password' }
     };
     const SAME = 'That email and password don’t match. Try again, or reset your password.';
     const ERRORS = {
@@ -1616,28 +1622,35 @@ button{font:inherit;color:inherit}
       invalid_credentials: SAME,
       too_many: 'Too many attempts. Wait a few minutes and try again, or reset your password.',
       invalid_token: 'This link has expired or was already used. Enter your email to get a new one.',
+      invalid_code: 'That code isn’t right. Check the email and try again.',
+      code_expired: 'That code has expired or was tried too many times. Send a new code.',
       mail_not_configured: 'Password emails aren’t switched on for the site yet. Please try again later.',
       not_configured: 'Accounts are almost ready. Please try again a little later.',
       network: 'No connection. Check your internet and try again.'
     };
     const authError = e => ERRORS[e && e.code] || 'Something went wrong. Please try again.';
+    const isCode = m => m === 'code' || m === 'resetcode';
     function showMsg(text, kind = '') { authMsg.textContent = text; authMsg.className = 'auth-msg' + (kind ? ' ' + kind : ''); }
     function setMode(m) {
       mode = m;
       const c = COPY[m];
-      $('#authTitle').innerHTML = c.title; $('#authSub').textContent = c.sub; authSubmit.textContent = c.submit;
+      $('#authTitle').innerHTML = c.title; $('#authSub').textContent = c.sub.replace('{email}', codeEmail); authSubmit.textContent = c.submit;
       $('#authTabIn').setAttribute('aria-selected', String(m === 'in'));
       $('#authTabUp').setAttribute('aria-selected', String(m === 'up'));
-      $('#authTabs').hidden = m === 'reset' || m === 'newpw';
+      $('#authTabs').hidden = m === 'reset' || m === 'newpw' || isCode(m);
       $('#authNameField').hidden = m !== 'up';
-      $('#authEmailField').hidden = m === 'newpw';
-      $('#authPwField').hidden = m === 'reset';
+      $('#authEmailField').hidden = m === 'newpw' || isCode(m);
+      $('#authCodeField').hidden = !isCode(m);
+      $('#authPwField').hidden = m === 'reset' || m === 'code';
       $('#authRow').hidden = m === 'reset';
-      $('#authHint').hidden = !(m === 'up' || m === 'newpw');
+      $('#authHint').hidden = !(m === 'up' || m === 'newpw' || m === 'resetcode');
       $('#authForgot').hidden = m !== 'in';
-      $('#authBack').hidden = m !== 'reset';
+      $('#authResend').hidden = !isCode(m);
+      $('#authBack').hidden = !(m === 'reset' || m === 'resetcode');
       $('#authFine').hidden = m !== 'up';
-      aPw.setAttribute('autocomplete', m === 'up' || m === 'newpw' ? 'new-password' : 'current-password');
+      aPw.setAttribute('autocomplete', m === 'up' || m === 'newpw' || m === 'resetcode' ? 'new-password' : 'current-password');
+      if (isCode(m)) aCode.value = '';
+      if (m !== 'in' && m !== 'up') $('#authSkip').hidden = true; // only for the window that opens by itself
       showMsg('');
     }
     // auto: opened by the site after loading (not by a click), so it can be skipped and
@@ -1649,7 +1662,7 @@ button{font:inherit;color:inherit}
       $('#authSkip').hidden = !auto;
       authEl.hidden = false; root.classList.add('auth-open'); if (lenis) lenis.stop();
       authEl.scrollTop = 0;
-      setTimeout(() => (auto ? $('.auth-card') : m === 'up' ? aName : m === 'newpw' ? aPw : aEmail).focus({ preventScroll: true }), 30);
+      setTimeout(() => (auto ? $('.auth-card') : m === 'up' ? aName : m === 'newpw' ? aPw : isCode(m) ? aCode : aEmail).focus({ preventScroll: true }), 30);
     }
     function closeAuth() {
       authEl.hidden = true; root.classList.remove('auth-open'); if (lenis) lenis.start();
@@ -1667,6 +1680,16 @@ button{font:inherit;color:inherit}
     $('#authTabUp').addEventListener('click', () => setMode('up'));
     $('#authForgot').addEventListener('click', () => { setMode('reset'); aEmail.focus(); });
     $('#authBack').addEventListener('click', () => { setMode('in'); aEmail.focus(); });
+    // A fresh code: for a new account (signed in) or for a password reset.
+    $('#authResend').addEventListener('click', async () => {
+      try {
+        if (mode === 'code') await api.call('/auth/resend-verification', { method: 'POST' });
+        else await api.call('/auth/forgot', { method: 'POST', body: { email: codeEmail } });
+        aCode.value = ''; aCode.focus();
+        showMsg(`A new code is on its way to ${codeEmail}. It can take a minute; check spam too.`, 'ok');
+      } catch (e) { showMsg(authError(e)); }
+    });
+    aCode.addEventListener('input', () => { aCode.value = aCode.value.replace(/\D/g, '').slice(0, 6); });
     $('#authClose').addEventListener('click', closeAuth);
     $('#authSkip').addEventListener('click', () => { closeAuth(); toast('You can sign in anytime from the top right.'); });
     authEl.addEventListener('click', e => { if (e.target === authEl) closeAuth(); });
@@ -1690,19 +1713,28 @@ button{font:inherit;color:inherit}
       e.preventDefault();
       const email = aEmail.value.trim(), pw = aPw.value, name = aName.value.trim();
       if (mode === 'up' && !name) { showMsg('Enter your name.'); aName.focus(); return; }
-      if (mode !== 'newpw' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showMsg('Enter a valid email address.'); aEmail.focus(); return; }
-      if ((mode === 'up' || mode === 'newpw') && pw.length < 8) { showMsg('Choose a password with at least 8 characters.'); aPw.focus(); return; }
+      const code = aCode.value.replace(/\D/g, '');
+      if (mode !== 'newpw' && !isCode(mode) && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showMsg('Enter a valid email address.'); aEmail.focus(); return; }
+      if (isCode(mode) && code.length !== 6) { showMsg('Enter the 6-digit code from the email.'); aCode.focus(); return; }
+      if ((mode === 'up' || mode === 'newpw' || mode === 'resetcode') && pw.length < 8) { showMsg('Choose a password with at least 8 characters.'); aPw.focus(); return; }
       if (mode === 'in' && !pw) { showMsg('Enter your password.'); aPw.focus(); return; }
       if (state === 'off') { showMsg('Accounts aren’t available right now. Please try again in a moment.'); return; }
       if (authSubmit.getAttribute('aria-disabled') === 'true') return;
       const label = authSubmit.textContent;
       authSubmit.setAttribute('aria-disabled', 'true');
-      authSubmit.textContent = { reset: 'Sending…', up: 'Creating your account…', newpw: 'Saving…', in: 'Signing in…' }[mode];
+      authSubmit.textContent = { reset: 'Sending…', up: 'Creating your account…', newpw: 'Saving…', in: 'Signing in…', code: 'Checking…', resetcode: 'Saving…' }[mode];
       const post = (path, body) => api.call(path, { method: 'POST', body });
       try {
         if (mode === 'reset') {
           await post('/auth/forgot', { email });
-          showMsg(`If an account exists for ${email}, a reset link is on its way. Check your inbox and spam folder.`, 'ok');
+          codeEmail = email; setMode('resetcode');
+          setTimeout(() => aCode.focus(), 30);
+        } else if (mode === 'resetcode') {
+          const d = await post('/auth/reset', { email: codeEmail, code, password: pw });
+          finish(d.user, 'Your password is changed and you’re signed in.');
+        } else if (mode === 'code') {
+          const d = await post('/auth/verify-code', { code });
+          finish(d.user, 'Your email is confirmed. Welcome!');
         } else if (mode === 'newpw') {
           const d = await post('/auth/reset', { token: resetToken, password: pw });
           resetToken = null;
@@ -1710,14 +1742,23 @@ button{font:inherit;color:inherit}
         } else if (mode === 'up') {
           const d = await post('/auth/signup', { name, email, password: pw });
           const first = d.user.name.split(' ')[0];
-          finish(d.user, d.verificationSent ? `Welcome, ${first}. We sent a link to ${d.user.email} to confirm your address.` : `Welcome, ${first}. Your account is ready.`);
+          if (d.verificationSent) {
+            // Signed in already; now confirm the email with the code we just sent.
+            const then = afterAuth; afterAuth = null;
+            await render(d.user);
+            if (then) then();
+            codeEmail = d.user.email; aPw.value = ''; setMode('code');
+            showMsg(`Welcome, ${first}. Your account is ready.`, 'ok');
+            setTimeout(() => aCode.focus(), 30);
+          } else finish(d.user, `Welcome, ${first}. Your account is ready.`);
         } else {
           const d = await post('/auth/signin', { email, password: pw });
           finish(d.user, `Signed in as ${d.user.name}.`);
         }
       } catch (err) {
         if (mode === 'newpw' && err.code === 'invalid_token') setMode('reset');
-        showMsg(authError(err));
+        if (err.code === 'invalid_code' && err.left) showMsg(`That code isn’t right. ${err.left} ${err.left === 1 ? 'try' : 'tries'} left.`);
+        else showMsg(authError(err));
       } finally {
         authSubmit.removeAttribute('aria-disabled');
         authSubmit.textContent = COPY[mode].submit;
@@ -1792,10 +1833,10 @@ button{font:inherit;color:inherit}
       }
     }
     btn.addEventListener('click', () => { if (!me) openAuth('in'); else openMenu(menu.hidden); });
-    $('#accountResend').addEventListener('click', async () => {
+    $('#accountResend').addEventListener('click', () => {
       if (!me) return;
-      try { await api.call('/auth/resend-verification', { method: 'POST' }); toast(`Confirmation link sent to ${me.email}.`); }
-      catch (e) { toast(authError(e)); }
+      openMenu(false);
+      codeEmail = me.email; openAuth('code');
     });
     // Confirmed the email in another tab? The reminder clears when they come back.
     window.addEventListener('focus', () => {

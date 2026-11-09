@@ -83,10 +83,11 @@ Your own **Node.js + Express** backend replaced Firebase. It runs on the same Ne
 
 **Accounts on the site** (the window opens after the loading animation; also Sign in at the top right, or Save on a place):
 - **After loading:** visitors who aren't signed in see the window once per visit: Create account on a new device, Sign in on one that has signed in before. "Continue without an account" closes it, so the site and AI chat stay open to everyone.
-- **Create account:** name, email and a password of at least 8 characters. A confirmation link is emailed; until it's used, the account menu shows a reminder with a resend link.
+- **Create account:** name, email and a password of at least 8 characters. Brevo emails a **6-digit code (OTP)** and the window asks for it ("Check your email"); the link in the same email works too. Visitors can do it later: the account menu shows a reminder that opens the code step, with "Send a new code".
 - **Sign in** with email and password. Ten wrong tries in 15 minutes pause that email for a while.
-- **Forgot password?** emails a link (valid one hour) that opens the site on "Choose a new password". The answer is the same whether or not the email has an account. Choosing a new password signs out every other device.
-- **Change password** in the account menu emails the same kind of link.
+- **Forgot password?** emails a 6-digit code and a link, both valid for one hour. Visitors type the code with a new password ("Enter your code"), or open the link. The answer is the same whether or not the email has an account. Choosing a new password signs out every other device.
+- **Codes are safe to type:** only a hash is stored, a new code replaces the old one, and after 5 wrong tries a code stops working.
+- **Change password** in the account menu emails the same kind of code and link.
 - Chats from before signing up stay with the new account.
 
 **The admin dashboard** is at `https://storied-otter-d8b50e.netlify.app/admin` (React). Sign in with an account whose email is in `ADMIN_EMAILS` and has been confirmed. It shows:

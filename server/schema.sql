@@ -37,6 +37,10 @@ create table if not exists hg.tokens (
   used_at     timestamptz
 );
 create index if not exists tokens_user_idx on hg.tokens (user_id, purpose);
+-- Each link also comes with a 6-digit code (OTP) to type in instead. Only a SHA-256 of
+-- "<user id>:<code>" is kept; after 5 wrong tries the code stops working.
+alter table hg.tokens add column if not exists code_hash text;
+alter table hg.tokens add column if not exists attempts integer not null default 0;
 
 -- Sign-in and reset attempts, for rate limiting (keys are hashed, never raw IPs).
 create table if not exists hg.auth_attempts (
