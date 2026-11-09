@@ -67,6 +67,15 @@ I studied that template's motion and wrote my own versions of it for this site. 
 - **Line-by-line reveals** for section headings and leads.
 - **Letter scramble** on nav links, footer links and button labels when you hover them.
 
+## The Claude version
+
+The same page also runs on claude.ai: https://claude.ai/artifact/DQeCi7JuR84A7sQxmZxRUY (private until you share it from its Share menu).
+
+- **It's the same file.** `src/page.html` notices when it runs inside Claude and switches over by itself. To update it, publish `src/page.html` again with the photos (`site/places/*.jpg`), `site/poster.jpg` and `site/bg-video.mp4` as files.
+- **The AI consultant is Claude.** Each visitor's questions use their own Claude account; the first question asks them to allow it.
+- **Accounts are Claude accounts.** There's no sign-up window, password or email code there. You, and anyone you give Contributor or Editor access, can save places and keep chats; they're private to each person. Visitors with view-only or public-link access can still read the site and chat with Claude, but can't save.
+- **Not on the Claude version:** the enquiry form, visitor tracking and the admin dashboard. Those need the public website below.
+
 ## Backend, database and admin dashboard
 
 Your own **Node.js + Express** backend replaced Firebase. It runs on the same Netlify site as a serverless function, answering at `/api/v1/*`, and keeps everything in a private **Supabase Postgres** database (schema `hg`, not reachable with Supabase's public keys). The AI chat itself still runs on the Lovable backend.

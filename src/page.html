@@ -1148,7 +1148,65 @@ button{font:inherit;color:inherit}
     return msg => { el.textContent = msg; el.hidden = false; clearTimeout(t); t = setTimeout(() => { el.hidden = true; }, 4200); };
   })();
   const afterLoad = fn => (document.readyState === 'complete' ? setTimeout(fn, 0) : addEventListener('load', () => setTimeout(fn, 0), { once: true }));
-  const api = (() => {
+  /* On claude.ai the page runs inside Claude's viewer: Claude itself is the backend. The viewer's
+     Claude account is their account, and this page's own storage keeps their saved places and
+     chats, private to them. Same calls as the website's backend, so the rest of the page is shared. */
+  const IN_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
+  function claudeBackend() {
+    const fail = code => Object.assign(new Error(code), { code });
+    let started = null, db = null, uid = null;
+    const mine = () => db.collection('data/users/' + uid);
+    const chatsOf = () => db.collection('data/users/' + uid + '/chats/items');
+    const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+    function start() {
+      if (!started) started = (async () => {
+        const [user, store] = await Promise.all([claude.use('user'), claude.use('db')]);
+        if (!user || !store) return { state: 'off', user: null };
+        const me = await user.me();
+        if (!me || !me.id || (await user.can('data.write')) === false) return { state: 'off', user: null };
+        db = store; uid = me.id;
+        return { state: 'claude', user: { id: me.id, name: me.name || 'You', email: '', emailVerified: true, isAdmin: await user.isOwner() } };
+      })().catch(() => ({ state: 'off', user: null }));
+      return started;
+    }
+    async function call(path, { method = 'GET', body } = {}) {
+      if ((await start()).state !== 'claude') throw fail('not_available');
+      let m;
+      if (path === '/me/saved' || (m = path.match(/^\/me\/saved\/([a-z0-9-]{1,60})$/))) {
+        const ref = mine().doc('saved'), snap = await ref.get();
+        let list = (snap.exists && snap.data().slugs) || [];
+        if (m) {
+          list = list.filter(x => x !== m[1]);
+          if (method === 'PUT') list.push(m[1]);
+          if (list.length > 50) throw fail('too_many_saved');
+          await ref.set({ slugs: list, updatedAt: Date.now() });
+        }
+        return { places: list };
+      }
+      if (path === '/chats/messages') {
+        const id = /^[a-z0-9]{6,40}$/.test(body.chatId || '') ? body.chatId : newId();
+        const ref = chatsOf().doc(id), snap = await ref.get();
+        const old = snap.exists ? snap.data() : { title: body.question.slice(0, 140), messages: [] };
+        // Keep the newest 30 messages so a chat stays well inside the store's size limit.
+        const messages = [...old.messages, { role: 'user', text: body.question.slice(0, 4000) }, { role: 'assistant', text: body.answer.slice(0, 8000) }].slice(-30);
+        await ref.set({ title: old.title, messages, messageCount: (old.messageCount || 0) + 2, updatedAt: Date.now() });
+        return { chatId: id };
+      }
+      if (path === '/chats') {
+        const q = await chatsOf().orderBy('updatedAt', 'desc').limit(50).get();
+        return { chats: q.docs.map(d => { const c = d.data(); return { id: d.id, title: c.title, messageCount: c.messageCount, updatedAt: c.updatedAt }; }) };
+      }
+      if ((m = path.match(/^\/chats\/([a-z0-9]{6,40})$/))) {
+        const snap = await chatsOf().doc(m[1]).get();
+        if (!snap.exists) throw fail('not_found');
+        return { id: m[1], messages: snap.data().messages };
+      }
+      if (path === '/track/place') return null;
+      throw fail('not_available');
+    }
+    return { call, start, claude: true };
+  }
+  const api = IN_CLAUDE ? claudeBackend() : (() => {
     const BASE = window.HIDDEN_GEMS_API || '/api/v1';
     const fail = (code, status) => Object.assign(new Error(code), { code, status });
     async function call(path, { method = 'GET', body } = {}) {
@@ -1178,7 +1236,7 @@ button{font:inherit;color:inherit}
       }
       return started;
     }
-    return { call, start };
+    return { call, start, claude: false };
   })();
 
   /* ---------- Places data (verified; edit this list to change the ring) ---------- */
@@ -1751,14 +1809,15 @@ button{font:inherit;color:inherit}
       loadSeq++;
       if (signedIn) store('localStorage', 'hg-had-account', '1');
       $('#accountVerify').hidden = !(signedIn && !me.emailVerified);
-      $('#accountPassword').hidden = !signedIn;
+      $('#accountPassword').hidden = !signedIn || api.claude;
+      $('#accountSignOut').hidden = api.claude;
       if (!signedIn) {
         label.textContent = 'Sign in'; av.innerHTML = avIcon;
         favs = new Set(); renderSaved(); refreshSave(); openMenu(false); return;
       }
       label.textContent = me.name.split(' ')[0];
       av.textContent = me.name.trim().charAt(0).toUpperCase();
-      who.textContent = 'Signed in as ' + me.name;
+      who.textContent = (api.claude ? 'Signed in with Claude as ' : 'Signed in as ') + me.name;
       return loadSaved();
     }
     async function loadSaved() {
@@ -1860,6 +1919,7 @@ button{font:inherit;color:inherit}
           .then(d => { toast('Thank you. Your email address is confirmed.'); if (d.user) render(d.user); })
           .catch(() => toast('That confirmation link has expired or was already used. Sign in to get a new one.'));
       }
+      if (api.claude) return; // Claude already knows who this is: no sign-in window
       afterIntro(() => {
         if (!authEl.hidden) return;
         if (resetToken) { store('sessionStorage', 'hg-auth-prompt', '1'); openAuth('newpw'); return; }
@@ -1996,10 +2056,12 @@ button{font:inherit;color:inherit}
     let chatId = uid(), history = [], busy = false, ctrl = null;
     let remoteId = null, saving = Promise.resolve();
     const histBtn = $('#chatHistoryBtn'), histBox = $('#chatHistory');
+    const saving_on = st => st === 'ready' || st === 'claude';
     afterLoad(() => api.start().then(s => {
-      if (s.state !== 'ready') return;
+      if (api.claude) $('.chat-note').textContent = 'Answers come from Claude and can be wrong. Check roads, permits and weather before you travel.' + (s.state === 'claude' ? ' Your chats are saved for you on this page.' : '');
+      if (!saving_on(s.state)) return;
       histBtn.hidden = false;
-      $('.chat-note').textContent = 'AI answers can be wrong. Check roads, permits and weather before you travel. Your questions are saved so you can come back to them, and to help us improve.';
+      if (!api.claude) $('.chat-note').textContent = 'AI answers can be wrong. Check roads, permits and weather before you travel. Your questions are saved so you can come back to them, and to help us improve.';
     }));
     if (innerWidth < 440) input.placeholder = 'Ask about a hidden place…';
     if (window.DOMPurify) DOMPurify.addHook('afterSanitizeAttributes', node => { if (node.tagName === 'A') { node.setAttribute('target', '_blank'); node.setAttribute('rel', 'noopener noreferrer'); } });
@@ -2035,6 +2097,18 @@ button{font:inherit;color:inherit}
       const paint = () => { queued = false; const stick = nearBottom(); el.innerHTML = md(msg.text); if (stick) toBottom(); };
       ctrl = new AbortController();
       try {
+        if (api.claude) {
+          const sample = await claude.use('sample');
+          if (!sample) throw Object.assign(new Error('unavailable'), { code: 'unavailable' });
+          const live = ({ text }) => { msg.text = text; if (!queued) { queued = true; requestAnimationFrame(paint); } };
+          const r = await sample(forClaude(history), { signal: ctrl.signal, cache: false, onText: live });
+          msg.text = r.text;
+          if (!msg.text) throw new Error('Empty answer');
+          paint(); history.push(msg);
+          const question = history[history.length - 2];
+          saving = saving.then(() => persist(question, msg));
+          return;
+        }
         const res = await fetch(API, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctrl.signal,
           body: JSON.stringify({ id: chatId, trigger: 'submit-message', messages: history.map(m => ({ id: m.id, role: m.role, parts: [{ type: 'text', text: m.text }] })) })
@@ -2062,6 +2136,13 @@ button{font:inherit;color:inherit}
         const question = history[history.length - 2];
         saving = saving.then(() => persist(question, msg));
       } catch (err) {
+        if (err && err.code === 'cancelled') err = Object.assign(new Error('Stopped'), { name: 'AbortError' });
+        if (!msg.text && err && err.text) msg.text = err.text;
+        if (api.claude && !msg.text && err && /^(not_granted|sampling_disabled|unavailable|rate_limited)$/.test(err.code || '')) {
+          el.remove();
+          addEl('msg-error', `<p>${err.code === 'rate_limited' ? 'Claude is busy for you right now. Wait a minute, then ask again.' : 'The consultant answers with Claude. Allow this page to use Claude when asked, and make sure you’re signed in to claude.ai.'}</p>`);
+          return;
+        }
         if (err.name === 'AbortError') {
           if (msg.text) { paint(); history.push(msg); el.insertAdjacentHTML('beforeend', '<p class="msg-note">Stopped.</p>'); } else el.remove();
         } else if (msg.text) {
@@ -2073,10 +2154,22 @@ button{font:inherit;color:inherit}
         }
       } finally { ctrl = null; setBusy(false); toBottom(); }
     }
+    // On claude.ai: the consultant's brief, sent with the conversation (Claude keeps no memory between calls).
+    function forClaude(turns) {
+      const brief = 'You are the AI travel consultant on "India’s Hidden Gems", a site about lesser-known places in India. ' +
+        'Help the visitor plan a trip to quieter places in India only. Be warm, specific and practical: suggest one to three places, ' +
+        'and for each say why it is special, the best months, how to get there, permits if needed, and a rough daily budget in rupees. ' +
+        'Write in Markdown with short paragraphs or lists, under 250 words unless asked for more. If you are not sure about roads, ' +
+        'permits or prices, say so and suggest checking locally. Places featured on the site: ' +
+        PLACES.map(pl => `${pl.name} (${pl.state}, best ${pl.best})`).join('; ') + '.';
+      const msgs = turns.map(t => ({ role: t.role, content: t.text }));
+      msgs[0] = { role: 'user', content: brief + '\n\nThe visitor asks: ' + msgs[0].content };
+      return msgs;
+    }
     // Save one finished question and its answer to this visitor's chat (backend: /api/v1/chats).
     async function persist(q, a) {
       if (!q || q.role !== 'user' || !a || !a.text) return;
-      if ((await api.start()).state !== 'ready') return;
+      if (!saving_on((await api.start()).state)) return;
       try {
         const d = await api.call('/chats/messages', { method: 'POST', body: { chatId: remoteId, question: q.text.slice(0, 4000), answer: a.text.slice(0, 20000) } });
         remoteId = d.chatId;
@@ -2091,7 +2184,7 @@ button{font:inherit;color:inherit}
     const histNote = text => { const p = document.createElement('p'); p.className = 'hist-note'; p.textContent = text; return p; };
     function closeHistory() { histBox.hidden = true; inner.hidden = false; empty.hidden = history.length > 0; histBtn.textContent = 'Your chats'; }
     async function openHistory(forceOpen) {
-      if ((await api.start()).state !== 'ready') return;
+      if (!saving_on((await api.start()).state)) return;
       if (!histBox.hidden && !forceOpen) { closeHistory(); return; }
       histBox.hidden = false; inner.hidden = true; empty.hidden = true; histBtn.textContent = 'Back to chat';
       histView(histNote('Loading your chats…'));
