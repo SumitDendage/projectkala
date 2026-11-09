@@ -143,6 +143,18 @@ create table if not exists hg.enquiries (
 );
 create index if not exists enquiries_created_idx on hg.enquiries (created_at desc);
 
+-- ---------- The backend's own login (created separately, once) ----------
+-- The live backend connects as role "hg_app" through Supabase's transaction pooler
+-- (user hg_app.<project-ref>, port 6543). It can use only the tables in this schema:
+--   create role hg_app login connection limit 30 password '<a long random password>';
+--   alter role hg_app set search_path = hg, public;
+--   alter role hg_app set statement_timeout = '8s';
+--   grant usage on schema hg to hg_app;
+--   grant select, insert, update, delete on all tables in schema hg to hg_app;
+--   grant usage, select on all sequences in schema hg to hg_app;
+--   and, on every table: create policy hg_app_all on hg.<table> for all to hg_app using (true) with check (true);
+-- Its password lives only in Netlify's DATABASE_URL.
+
 -- ---------- Lock it down ----------
 -- Row level security with no policies: even if this schema were ever exposed through the
 -- Supabase Data API, the public keys could read nothing. The backend connects as the
