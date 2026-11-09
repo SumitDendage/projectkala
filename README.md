@@ -18,6 +18,7 @@ A new frontend for https://storied-otter-d8b50e.netlify.app/. It's an Apple-styl
 | `vendor/`, `fonts/` | Self-hosted libraries and fonts (SIL Open Font License) for the live site, so it never waits on jsDelivr or Google Fonts |
 | `deploy_netlify.py` | Publishes `site/` and the backend to storied-otter without breaking the AI chat |
 | `build.py` | Builds everything: `site/index.html` from `src/page.html`, the dashboard, and the backend bundle |
+| `package.json` | For Node.js hosting (Hostinger): `npm install`, then `npm start` runs the whole site |
 
 ## Deploy
 
@@ -66,6 +67,32 @@ I studied that template's motion and wrote my own versions of it for this site. 
 - **Masked headline.** The hero headline rises out of a mask when the loader lifts.
 - **Line-by-line reveals** for section headings and leads.
 - **Letter scramble** on nav links, footer links and button labels when you hover them.
+
+## Deploy on Hostinger
+
+The whole site is one Node.js app: `npm start` (that is, `node server/src/server.js`) serves the website, the admin dashboard at `/admin`, the backend at `/api/v1` and the AI chat at `/api/chat`. The database stays on Supabase and emails stay on Brevo, so nothing about them changes. Hostinger needs a plan that runs **Node.js apps** (Business or Cloud web hosting, or a VPS); Single and Premium plans can't run the backend.
+
+**Hostinger Node.js app (hPanel):**
+1. Add a website → **Node.js app** → import from **GitHub** → repository `SumitDendage/projectkala`, branch `main`.
+2. Settings: root folder: the repository root; Node.js 20 or 22; install command `npm install`; start command `npm start` (entry file `server/src/server.js`). No build step: `site/` is already built.
+3. Environment variables (same as on Netlify):
+
+   | Variable | Value |
+   |---|---|
+   | `DATABASE_URL` | The Supabase connection (copy it from Netlify → Site configuration → Environment variables, or from Supabase → Connect → Transaction pooler) |
+   | `ADMIN_EMAILS` | Your email |
+   | `BREVO_API_KEY` | Your Brevo API key |
+   | `MAIL_FROM` | A sender verified in Brevo |
+   | `SITE_URL` | Your Hostinger address, e.g. `https://yourdomain.com` (used in email links) |
+
+4. Deploy, then connect your domain and turn on SSL (HTTPS is required: sign-in cookies only work over HTTPS).
+5. Check: open `https://yourdomain.com/api/v1/health?check=db`. It should say `"databaseReachable":true`; if not, `databaseProblem` says what to fix (wrong password, wrong pooler address, or a blocked port: then use port `5432` instead of `6543` in `DATABASE_URL`).
+
+Hostinger runs the app with its own `PORT`; the server uses it automatically. `HOST` defaults to `0.0.0.0`.
+
+**On a Hostinger VPS** instead: install Node.js 22, `git clone` the repository, run `npm install --omit=dev`, set the same variables, and keep `npm start` running with a process manager (e.g. pm2) behind Nginx with a Let's Encrypt certificate.
+
+**The AI chat** is passed through to the existing chat service at `https://storied-otter-d8b50e.netlify.app/api/chat`. Keep that Netlify site, or set `CHAT_URL` to another chat endpoint that speaks the same protocol.
 
 ## The Claude version
 

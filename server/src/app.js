@@ -37,8 +37,28 @@ function createApp() {
 
   api.use(express.json({ limit: '64kb' }));
 
-  // Health: the site uses this to decide which features to show.
-  api.get('/health', (req, res) => res.json({ ok: true, database: db.configured(), mail: mail.configured() }));
+  // Health: the site uses this to decide which features to show. Add ?check=db to also try the
+  // database (handy right after setting up a new host): it says whether it answered, or why not.
+  api.get('/health', ah(async (req, res) => {
+    const out = { ok: true, database: db.configured(), mail: mail.configured() };
+    if (req.query.check === 'db' && db.configured()) {
+      try {
+        await Promise.race([db.query('select 1 from hg.users limit 1'), new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error('timeout'), { code: 'timeout' })), 8000))]);
+        out.databaseReachable = true;
+      } catch (e) {
+        const m = String(e.message || '');
+        out.databaseReachable = false;
+        out.databaseProblem = e.code === 'timeout' || /ETIMEDOUT|timeout/i.test(m) ? 'no answer (check the host and port; some hosts block outgoing port 6543, then try port 5432)'
+          : e.code === '28P01' || /password authentication/i.test(m) ? 'wrong user or password in DATABASE_URL'
+          : /tenant or user not found/i.test(m) ? 'wrong pooler address: copy it from Supabase → Connect'
+          : e.code === 'ENOTFOUND' ? 'the database host name in DATABASE_URL does not exist'
+          : e.code === 'ECONNREFUSED' ? 'connection refused by the database host'
+          : e.code === '42P01' ? 'connected, but the tables are missing: run server/schema.sql'
+          : 'could not connect (' + (e.code || 'unknown') + ')';
+      }
+    }
+    res.json(out);
+  }));
 
   api.use((req, res, next) => (db.configured() ? next() : fail(res, 503, 'not_configured')));
 
